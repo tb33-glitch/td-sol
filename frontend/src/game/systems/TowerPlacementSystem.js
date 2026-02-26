@@ -1,12 +1,13 @@
-import { TOWER_FOOTPRINT } from '../data/towerData';
+import { TOWER_FOOTPRINT, TOWER_TYPES } from '../data/towerData';
 import eventBus from '../GameEventBus';
 
 export default class TowerPlacementSystem {
   constructor(scene) {
     this.scene = scene;
-    this.placingTower = null; // tower type id being placed
+    this.placingTower = null;
     this.previewGraphics = null;
     this.rangeGraphics = null;
+    this.previewSprite = null;
     this.isValid = false;
   }
 
@@ -42,6 +43,20 @@ export default class TowerPlacementSystem {
     this.placingTower = towerId;
     this.previewGraphics.setVisible(true);
     this.rangeGraphics.setVisible(true);
+
+    // Create sprite preview
+    if (this.previewSprite) {
+      this.previewSprite.destroy();
+      this.previewSprite = null;
+    }
+    const towerDef = TOWER_TYPES[towerId];
+    if (towerDef && towerDef.textureKey && this.scene.textures.exists(towerDef.textureKey)) {
+      this.previewSprite = this.scene.add.image(0, 0, towerDef.textureKey);
+      this.previewSprite.setDisplaySize(towerDef.radius * 2.2, towerDef.radius * 2.2);
+      this.previewSprite.setAlpha(0.6);
+      this.previewSprite.setDepth(101);
+      this.previewSprite.setVisible(false);
+    }
   }
 
   cancelPlacing() {
@@ -50,6 +65,10 @@ export default class TowerPlacementSystem {
     this.previewGraphics.setVisible(false);
     this.rangeGraphics.clear();
     this.rangeGraphics.setVisible(false);
+    if (this.previewSprite) {
+      this.previewSprite.destroy();
+      this.previewSprite = null;
+    }
   }
 
   updatePreview(x, y) {
@@ -60,17 +79,22 @@ export default class TowerPlacementSystem {
 
     this.isValid = this.canPlace(x, y);
 
-    // Draw tower preview
+    // Position sprite preview
+    if (this.previewSprite) {
+      this.previewSprite.setPosition(x, y);
+      this.previewSprite.setVisible(true);
+      this.previewSprite.setTint(this.isValid ? 0xffffff : 0xff4444);
+      this.previewSprite.setAlpha(this.isValid ? 0.7 : 0.4);
+    }
+
+    // Draw placement circle
     this.previewGraphics.clear();
-    const color = this.isValid ? towerData.color : 0xff0000;
-    this.previewGraphics.fillStyle(color, 0.6);
-    this.previewGraphics.fillCircle(x, y, towerData.radius);
-    this.previewGraphics.lineStyle(2, this.isValid ? 0xffffff : 0xff0000, 0.8);
-    this.previewGraphics.strokeCircle(x, y, towerData.radius);
+    this.previewGraphics.lineStyle(2, this.isValid ? 0x44ff44 : 0xff0000, 0.6);
+    this.previewGraphics.strokeCircle(x, y, towerData.radius + 2);
 
     // Draw range preview
     this.rangeGraphics.clear();
-    if (towerData.range > 0) {
+    if (towerData.range > 0 && towerData.range < 9999) {
       this.rangeGraphics.lineStyle(1, 0xffffff, 0.3);
       this.rangeGraphics.strokeCircle(x, y, towerData.range);
       this.rangeGraphics.fillStyle(0xffffff, 0.05);
@@ -125,5 +149,6 @@ export default class TowerPlacementSystem {
     if (this.unsubCancel) this.unsubCancel();
     if (this.previewGraphics) this.previewGraphics.destroy();
     if (this.rangeGraphics) this.rangeGraphics.destroy();
+    if (this.previewSprite) this.previewSprite.destroy();
   }
 }

@@ -11,8 +11,6 @@ export default function GameHUD({
   toggleSpeed,
   togglePause,
 }) {
-  const waveActive = wave > 0;
-
   return (
     <div className="td-hud">
       <div className="td-hud-left">
@@ -36,7 +34,7 @@ export default function GameHUD({
         <button
           className="td-btn td-speed-btn"
           onClick={toggleSpeed}
-          title="Toggle game speed"
+          title="Toggle speed"
         >
           {gameSpeed}x
         </button>
@@ -45,14 +43,14 @@ export default function GameHUD({
           onClick={togglePause}
           title={isPaused ? 'Resume' : 'Pause'}
         >
-          {isPaused ? '▶' : '⏸'}
+          {isPaused ? 'PLAY' : 'PAUSE'}
         </button>
         <button
           className="td-btn td-start-btn"
           onClick={startWave}
           title="Start next wave (Space)"
         >
-          Send Wave
+          SEND IT
         </button>
       </div>
     </div>

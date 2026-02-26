@@ -3,8 +3,9 @@
   display: flex;
   width: 100vw;
   height: 100vh;
-  background: #1a1a2e;
+  background: #0a0a1e;
   overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .td-canvas-area {
@@ -23,7 +24,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(10, 10, 30, 0.85) 0%, transparent 100%);
   pointer-events: none;
   z-index: 10;
 }
@@ -34,33 +35,41 @@
 
 .td-hud-left {
   display: flex;
-  gap: 16px;
+  gap: 20px;
 }
 
 .td-stat {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 700;
   color: #fff;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
 }
 
 .td-lives .td-stat-icon {
-  color: #ff4444;
-  font-size: 20px;
+  color: #ff4466;
+  font-size: 22px;
+  filter: drop-shadow(0 0 4px rgba(255, 68, 102, 0.5));
 }
 
 .td-money .td-stat-icon {
-  color: #ffdd00;
-  font-size: 20px;
+  color: #44ff88;
+  font-size: 22px;
+  filter: drop-shadow(0 0 4px rgba(68, 255, 136, 0.5));
+}
+
+.td-money .td-stat-value {
+  color: #44ff88;
 }
 
 .td-hud-center {
-  font-size: 16px;
-  color: #ccc;
-  font-weight: bold;
+  font-size: 15px;
+  color: #aaa;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 .td-hud-right {
@@ -71,20 +80,24 @@
 
 /* ===== Buttons ===== */
 .td-btn {
-  background: #2a2a4a;
-  color: #fff;
-  border: 1px solid #444;
-  border-radius: 6px;
+  background: #1a1a3e;
+  color: #ccc;
+  border: 1px solid #333;
+  border-radius: 4px;
   padding: 6px 14px;
-  font-size: 13px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
   font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .td-btn:hover {
-  background: #3a3a5a;
-  border-color: #666;
+  background: #2a2a5a;
+  border-color: #555;
+  color: #fff;
 }
 
 .td-btn:active {
@@ -92,38 +105,49 @@
 }
 
 .td-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
 }
 
 .td-start-btn {
-  background: #2d6a2d;
-  border-color: #3a8a3a;
+  background: linear-gradient(135deg, #1a4a2a, #2d6a2d);
+  border-color: #44aa44;
+  color: #44ff88;
+  font-size: 13px;
 }
 
 .td-start-btn:hover {
-  background: #3a8a3a;
+  background: linear-gradient(135deg, #2d6a2d, #3a8a3a);
+  box-shadow: 0 0 12px rgba(68, 255, 136, 0.2);
 }
 
 .td-speed-btn {
-  min-width: 40px;
+  min-width: 44px;
+  text-align: center;
+  color: #ffaa33;
+  border-color: #664411;
+}
+
+.td-pause-btn {
+  min-width: 60px;
   text-align: center;
 }
 
 .td-sell-btn {
-  background: #6a2d2d;
-  border-color: #8a3a3a;
+  background: linear-gradient(135deg, #4a1a1a, #6a2d2d);
+  border-color: #aa4444;
+  color: #ff6666;
 }
 
 .td-sell-btn:hover {
-  background: #8a3a3a;
+  background: linear-gradient(135deg, #6a2d2d, #8a3a3a);
 }
 
 /* ===== Tower Shop ===== */
 .td-shop {
-  width: 220px;
-  background: #16213e;
-  border-left: 1px solid #333;
+  width: 240px;
+  background: #0d0d22;
+  border-left: 1px solid #1a1a3e;
   padding: 12px;
   overflow-y: auto;
   display: flex;
@@ -131,29 +155,30 @@
 }
 
 .td-shop-title {
-  font-size: 16px;
-  font-weight: bold;
-  color: #aaa;
+  font-size: 14px;
+  font-weight: 700;
+  color: #44ff88;
   text-align: center;
   margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(68, 255, 136, 0.3);
 }
 
 .td-shop-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .td-shop-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  background: #1a1a3e;
-  border: 1px solid #333;
-  border-radius: 6px;
+  gap: 8px;
+  padding: 8px;
+  background: #111133;
+  border: 1px solid #222255;
+  border-radius: 4px;
   cursor: pointer;
   color: #fff;
   text-align: left;
@@ -162,48 +187,70 @@
 }
 
 .td-shop-item:hover {
-  background: #252550;
-  border-color: #555;
+  background: #1a1a4a;
+  border-color: #44ff88;
+  box-shadow: 0 0 8px rgba(68, 255, 136, 0.1);
 }
 
 .td-shop-item.td-shop-disabled {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: not-allowed;
+}
+
+.td-shop-item.td-shop-disabled:hover {
+  border-color: #222255;
+  box-shadow: none;
 }
 
 .td-shop-icon {
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: 4px;
   flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.td-shop-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .td-shop-name {
-  font-size: 13px;
-  font-weight: 500;
-  flex: 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.td-shop-desc {
+  font-size: 10px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .td-shop-cost {
   font-size: 13px;
-  color: #ffdd00;
-  font-weight: bold;
+  color: #44ff88;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .td-shop-hint {
   margin-top: auto;
   padding-top: 10px;
-  font-size: 11px;
-  color: #666;
+  font-size: 10px;
+  color: #444;
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 /* ===== Tower Info Panel ===== */
 .td-tower-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .td-tower-info-header {
@@ -213,40 +260,49 @@
 }
 
 .td-tower-name {
-  font-size: 15px;
-  font-weight: bold;
+  font-size: 14px;
+  font-weight: 700;
   color: #fff;
+}
+
+.td-tower-desc {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
 }
 
 .td-tower-stats {
   display: flex;
-  gap: 8px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 10px;
   color: #aaa;
+  margin-top: 4px;
 }
 
 .td-tower-stats span {
-  background: #1a1a3e;
-  padding: 2px 6px;
-  border-radius: 3px;
+  background: #111133;
+  padding: 2px 5px;
+  border-radius: 2px;
+  border: 1px solid #222255;
 }
 
 .td-upgrade-paths {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .td-upgrade-path {
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 6px;
+  border: 1px solid #1a1a3e;
+  border-radius: 3px;
+  padding: 5px;
+  background: #0a0a1e;
 }
 
 .td-upgrade-path-label {
-  font-size: 11px;
-  color: #777;
-  margin-bottom: 4px;
+  font-size: 9px;
+  color: #555;
+  margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -254,16 +310,16 @@
 .td-upgrade-tiers {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .td-upgrade-tier {
   padding: 4px 6px;
-  background: #1a1a2e;
-  border: 1px solid #333;
-  border-radius: 3px;
-  color: #888;
-  font-size: 11px;
+  background: #0d0d22;
+  border: 1px solid #1a1a3e;
+  border-radius: 2px;
+  color: #555;
+  font-size: 10px;
   text-align: left;
   cursor: default;
   font-family: inherit;
@@ -273,35 +329,40 @@
 }
 
 .td-upgrade-tier.owned {
-  background: #1a3a1a;
-  border-color: #2d6a2d;
-  color: #6aba6a;
+  background: #0d1f0d;
+  border-color: #1a4a1a;
+  color: #44aa44;
 }
 
 .td-upgrade-tier.available {
-  background: #1a2a4a;
-  border-color: #3366aa;
+  background: #0d0d2a;
+  border-color: #3355aa;
   color: #fff;
   cursor: pointer;
 }
 
 .td-upgrade-tier.available:hover {
-  background: #2a3a5a;
-  border-color: #4488cc;
+  background: #1a1a4a;
+  border-color: #44ff88;
+  box-shadow: 0 0 6px rgba(68, 255, 136, 0.15);
 }
 
 .td-upgrade-tier.too-expensive {
-  color: #664444;
+  color: #442222;
+}
+
+.td-upgrade-name {
+  font-weight: 500;
 }
 
 .td-upgrade-cost {
-  color: #ffdd00;
-  font-weight: bold;
+  color: #44ff88;
+  font-weight: 700;
 }
 
 .td-tower-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   margin-top: 4px;
 }
 
@@ -313,48 +374,66 @@
 .td-gameover-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
+  backdrop-filter: blur(4px);
 }
 
 .td-gameover-panel {
-  background: #16213e;
-  border: 2px solid #333;
-  border-radius: 12px;
+  background: #0d0d22;
+  border: 1px solid #222255;
+  border-radius: 8px;
   padding: 30px 40px;
   text-align: center;
-  min-width: 300px;
+  min-width: 320px;
 }
 
 .td-victory {
-  color: #44dd44;
-  font-size: 32px;
-  margin-bottom: 20px;
+  color: #44ff88;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  text-shadow: 0 0 20px rgba(68, 255, 136, 0.4);
+  letter-spacing: 3px;
 }
 
 .td-defeat {
-  color: #ff4444;
-  font-size: 32px;
+  color: #ff4466;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 4px;
+  text-shadow: 0 0 20px rgba(255, 68, 102, 0.4);
+  letter-spacing: 3px;
+}
+
+.td-gameover-subtitle {
+  color: #666;
+  font-size: 13px;
   margin-bottom: 20px;
 }
 
 .td-gameover-stats {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 24px;
 }
 
 .td-gameover-stat {
   display: flex;
   justify-content: space-between;
-  font-size: 16px;
-  color: #ccc;
-  padding: 4px 0;
-  border-bottom: 1px solid #333;
+  font-size: 14px;
+  color: #aaa;
+  padding: 6px 0;
+  border-bottom: 1px solid #1a1a3e;
+}
+
+.td-gameover-stat span:last-child {
+  color: #fff;
+  font-weight: 600;
 }
 
 .td-gameover-actions {
@@ -364,10 +443,15 @@
 }
 
 .td-restart-btn {
-  background: #2d6a2d;
-  border-color: #3a8a3a;
-  font-size: 16px;
+  background: linear-gradient(135deg, #1a4a2a, #2d6a2d);
+  border-color: #44aa44;
+  color: #44ff88;
+  font-size: 14px;
   padding: 10px 24px;
+}
+
+.td-restart-btn:hover {
+  box-shadow: 0 0 16px rgba(68, 255, 136, 0.3);
 }
 
 /* ===== Lobby ===== */
@@ -377,13 +461,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0a0a1e;
+  background: radial-gradient(ellipse at center, #0d0d22 0%, #050510 70%);
 }
 
 .td-lobby-panel {
-  background: #16213e;
-  border: 1px solid #333;
-  border-radius: 12px;
+  background: #0a0a1e;
+  border: 1px solid #1a1a3e;
+  border-radius: 8px;
   padding: 40px 50px;
   text-align: center;
   max-width: 600px;
@@ -391,22 +475,30 @@
 }
 
 .td-title {
-  font-size: 32px;
+  font-size: 42px;
+  font-weight: 900;
   color: #fff;
   margin: 0 0 4px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #44ff88, #ffaa33, #ff4466);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .td-subtitle {
-  color: #888;
+  color: #555;
   margin: 0 0 30px;
-  font-size: 14px;
+  font-size: 13px;
+  letter-spacing: 1px;
 }
 
 .td-map-select h3 {
-  color: #aaa;
-  font-size: 14px;
+  color: #666;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   margin-bottom: 12px;
 }
 
@@ -414,13 +506,13 @@
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 
 .td-map-option {
-  background: #1a1a3e;
-  border: 2px solid #333;
-  border-radius: 8px;
+  background: #111133;
+  border: 2px solid #1a1a3e;
+  border-radius: 6px;
   padding: 8px;
   cursor: pointer;
   transition: all 0.15s;
@@ -430,17 +522,18 @@
 }
 
 .td-map-option:hover {
-  border-color: #666;
+  border-color: #444;
 }
 
 .td-map-option.selected {
-  border-color: #44aa44 !important;
+  border-color: #44ff88 !important;
+  box-shadow: 0 0 12px rgba(68, 255, 136, 0.2);
 }
 
 .td-map-preview {
   width: 110px;
   height: 80px;
-  border-radius: 4px;
+  border-radius: 3px;
   margin-bottom: 6px;
   overflow: hidden;
 }
@@ -451,8 +544,8 @@
 }
 
 .td-map-name {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .td-mode-select {
@@ -460,16 +553,22 @@
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .td-start-solo {
-  background: #2d6a2d;
-  border-color: #3a8a3a;
-  font-size: 18px;
-  padding: 12px 32px;
+  background: linear-gradient(135deg, #1a4a2a, #2d6a2d);
+  border-color: #44aa44;
+  color: #44ff88;
+  font-size: 16px;
+  padding: 14px 32px;
   width: 100%;
   max-width: 300px;
+  letter-spacing: 2px;
+}
+
+.td-start-solo:hover {
+  box-shadow: 0 0 20px rgba(68, 255, 136, 0.3);
 }
 
 .td-pvp-btn {
@@ -478,6 +577,16 @@
 }
 
 .td-lobby-footer {
-  color: #555;
-  font-size: 12px;
+  color: #333;
+  font-size: 11px;
+}
+
+.td-lobby-footer p {
+  margin: 4px 0;
+}
+
+.td-lobby-tagline {
+  color: #444 !important;
+  font-style: italic;
+  margin-top: 8px !important;
 }

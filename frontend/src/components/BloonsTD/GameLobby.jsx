@@ -8,8 +8,8 @@ export default function GameLobby({ onStartGame }) {
   return (
     <div className="td-lobby">
       <div className="td-lobby-panel">
-        <h1 className="td-title">Bloons TD: SOL Edition</h1>
-        <p className="td-subtitle">Tower Defense meets Solana</p>
+        <h1 className="td-title">Meme TD</h1>
+        <p className="td-subtitle">Tower Defense x Solana | Defend Your Portfolio</p>
 
         <div className="td-map-select">
           <h3>Select Map</h3>
@@ -19,9 +19,6 @@ export default function GameLobby({ onStartGame }) {
                 key={map.id}
                 className={`td-map-option ${selectedMap === map.id ? 'selected' : ''}`}
                 onClick={() => setSelectedMap(map.id)}
-                style={{
-                  borderColor: selectedMap === map.id ? '#44aa44' : '#555',
-                }}
               >
                 <div
                   className="td-map-preview"
@@ -45,12 +42,13 @@ export default function GameLobby({ onStartGame }) {
             Solo Practice
           </button>
           <button className="td-btn td-pvp-btn" disabled title="Coming in Phase 2">
-            1v1 PvP (Coming Soon)
+            1v1 PvP Wager (Coming Soon)
           </button>
         </div>
 
         <div className="td-lobby-footer">
           <p>Space = Send Wave | Right-click = Cancel | ESC = Deselect</p>
+          <p className="td-lobby-tagline">deploy memes. defeat FUD. earn SOL.</p>
         </div>
       </div>
     </div>
@@ -60,8 +58,6 @@ export default function GameLobby({ onStartGame }) {
 function MapPreview({ map }) {
   const wp = map.waypoints;
   const pathColor = '#' + map.pathColor.toString(16).padStart(6, '0');
-
-  // Draw SVG path preview
   const points = wp.map(([x, y]) => `${x * 100},${y * 100}`).join(' ');
 
   return (

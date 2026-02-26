@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { generateAllSprites } from '../sprites/SpriteRenderer';
 
 export default class BootScene extends Phaser.Scene {
   constructor() {
@@ -6,10 +7,9 @@ export default class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // No external assets needed — everything is drawn with graphics
-    // Show a loading bar for future asset loading
     const { width, height } = this.scale;
 
+    // Loading bar
     const barW = 300;
     const barH = 20;
     const barX = (width - barW) / 2;
@@ -31,12 +31,12 @@ export default class BootScene extends Phaser.Scene {
       bg.destroy();
       fill.destroy();
     });
-
-    // Placeholder load to trigger progress events
-    // In future, load sprite sheets / audio here
   }
 
   create() {
+    // Generate all pixel art sprites as Phaser textures
+    generateAllSprites(this);
+
     this.scene.start('GameScene');
   }
 }

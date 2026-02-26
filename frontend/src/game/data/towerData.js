@@ -1,176 +1,192 @@
 export const TOWER_TYPES = {
   dart: {
     id: 'dart',
-    name: 'Dart Monkey',
+    name: 'Bonk Dog',
+    description: 'Shiba with a bat. Bonks FUD away.',
     cost: 200,
-    color: 0x8B4513,
+    color: 0xd4842a,
     range: 120,
-    fireRate: 800, // ms between shots
+    fireRate: 800,
     damage: 1,
-    pierce: 1, // how many bloons one projectile can hit
+    pierce: 1,
     projectileSpeed: 8,
-    projectileColor: 0x333333,
+    projectileColor: 0x6b4226,
     damageType: 'sharp',
     canDetectCamo: false,
-    radius: 12,
+    radius: 14,
+    textureKey: 'tower_bonk',
+    projTextureKey: 'proj_bonk',
     upgrades: {
-      path1: [ // Pierce
-        { name: 'Sharp Shots', cost: 150, effects: { pierce: 3 } },
-        { name: 'Razor Shots', cost: 250, effects: { pierce: 5, damage: 2 } },
-        { name: 'Triple Shot', cost: 500, effects: { pierce: 8, multishot: 3 } },
+      path1: [ // Pierce — "Diamond Hands"
+        { name: 'Sharp Bonk', cost: 150, effects: { pierce: 3 } },
+        { name: 'Double Bonk', cost: 250, effects: { pierce: 5, damage: 2 } },
+        { name: 'Triple Bonk', cost: 500, effects: { pierce: 8, multishot: 3 } },
       ],
-      path2: [ // Speed
-        { name: 'Quick Shots', cost: 100, effects: { fireRateMult: 0.75 } },
-        { name: 'Rapid Fire', cost: 200, effects: { fireRateMult: 0.5 } },
-        { name: 'Machine Gun', cost: 600, effects: { fireRateMult: 0.25 } },
+      path2: [ // Speed — "Speed Run"
+        { name: 'Quick Paws', cost: 100, effects: { fireRateMult: 0.75 } },
+        { name: 'Rapid Bonk', cost: 200, effects: { fireRateMult: 0.5 } },
+        { name: 'Bonk Machine', cost: 600, effects: { fireRateMult: 0.25 } },
       ],
-      path3: [ // Range
-        { name: 'Long Range', cost: 100, effects: { rangeMult: 1.3 } },
-        { name: 'Eagle Eye', cost: 250, effects: { rangeMult: 1.6, canDetectCamo: true } },
-        { name: 'Sniper Dart', cost: 500, effects: { rangeMult: 2.0, damage: 3 } },
+      path3: [ // Range — "Long Arm"
+        { name: 'Long Reach', cost: 100, effects: { rangeMult: 1.3 } },
+        { name: 'Keen Nose', cost: 250, effects: { rangeMult: 1.6, canDetectCamo: true } },
+        { name: 'Alpha Bonk', cost: 500, effects: { rangeMult: 2.0, damage: 3 } },
       ],
     },
   },
   bomb: {
     id: 'bomb',
-    name: 'Bomb Shooter',
+    name: 'Rare Pepe',
+    description: 'Lobs explosive rare pepes. AoE damage.',
     cost: 500,
-    color: 0x333333,
+    color: 0x3a8a3a,
     range: 100,
     fireRate: 1500,
     damage: 1,
     pierce: 1,
     projectileSpeed: 6,
-    projectileColor: 0x111111,
+    projectileColor: 0x3a8a3a,
     damageType: 'explosive',
     canDetectCamo: false,
     radius: 14,
+    textureKey: 'tower_pepe',
+    projTextureKey: 'proj_pepe',
     splashRadius: 30,
     upgrades: {
-      path1: [ // Damage
-        { name: 'Bigger Bombs', cost: 300, effects: { damage: 2, splashRadius: 40 } },
-        { name: 'Heavy Bombs', cost: 500, effects: { damage: 4, splashRadius: 50 } },
-        { name: 'MOAB Mauler', cost: 900, effects: { damage: 8, moabDamageMult: 3 } },
+      path1: [ // Damage — "Rarity"
+        { name: 'Uncommon Pepe', cost: 300, effects: { damage: 2, splashRadius: 40 } },
+        { name: 'Epic Pepe', cost: 500, effects: { damage: 4, splashRadius: 50 } },
+        { name: 'Legendary Pepe', cost: 900, effects: { damage: 8, moabDamageMult: 3 } },
       ],
-      path2: [ // Blast radius
-        { name: 'Wide Area', cost: 200, effects: { splashRadius: 45 } },
-        { name: 'Cluster Bombs', cost: 400, effects: { splashRadius: 60, clusterCount: 4 } },
-        { name: 'Carpet Bomb', cost: 800, effects: { splashRadius: 80, clusterCount: 8 } },
+      path2: [ // Blast radius — "Viral"
+        { name: 'Wider Meme', cost: 200, effects: { splashRadius: 45 } },
+        { name: 'Viral Pepe', cost: 400, effects: { splashRadius: 60 } },
+        { name: 'Pepe Supernova', cost: 800, effects: { splashRadius: 80 } },
       ],
-      path3: [ // Stun
-        { name: 'Concussion', cost: 200, effects: { stunDuration: 300 } },
-        { name: 'Flash Bomb', cost: 400, effects: { stunDuration: 600 } },
-        { name: 'Mega Stun', cost: 700, effects: { stunDuration: 1000, stunRadius: 60 } },
+      path3: [ // Stun — "Cringe"
+        { name: 'Cringe Factor', cost: 200, effects: { stunDuration: 300 } },
+        { name: 'Maximum Cringe', cost: 400, effects: { stunDuration: 600 } },
+        { name: 'Reality Check', cost: 700, effects: { stunDuration: 1000 } },
       ],
     },
   },
   ice: {
     id: 'ice',
-    name: 'Ice Tower',
+    name: 'Crying Wojak',
+    description: 'Floods the area with tears. Slows all enemies in range.',
     cost: 350,
-    color: 0x66ccff,
+    color: 0x4488cc,
     range: 80,
     fireRate: 2000,
     damage: 0,
-    pierce: 999, // hits all in range
-    projectileSpeed: 0, // aura effect, no projectile
+    pierce: 999,
+    projectileSpeed: 0,
     projectileColor: 0xaaddff,
     damageType: 'cold',
     canDetectCamo: false,
-    radius: 12,
+    radius: 14,
+    textureKey: 'tower_wojak',
+    projTextureKey: 'proj_tear',
     isAura: true,
-    slowAmount: 0.5, // 50% slow
+    slowAmount: 0.5,
     slowDuration: 1500,
     upgrades: {
-      path1: [ // Slow strength
-        { name: 'Chilled', cost: 200, effects: { slowAmount: 0.35 } },
-        { name: 'Deep Freeze', cost: 350, effects: { slowAmount: 0.2 } },
-        { name: 'Arctic Wind', cost: 600, effects: { slowAmount: 0.1, rangeMult: 1.5 } },
+      path1: [ // Slow strength — "Depression"
+        { name: 'Existential Dread', cost: 200, effects: { slowAmount: 0.35 } },
+        { name: 'Soul Crushing', cost: 350, effects: { slowAmount: 0.2 } },
+        { name: 'Total Despair', cost: 600, effects: { slowAmount: 0.1, rangeMult: 1.5 } },
       ],
-      path2: [ // Freeze duration
-        { name: 'Long Freeze', cost: 150, effects: { slowDuration: 2500 } },
-        { name: 'Cryo Lock', cost: 300, effects: { slowDuration: 4000 } },
-        { name: 'Absolute Zero', cost: 700, effects: { slowDuration: 6000, freezeDamage: 2 } },
+      path2: [ // Duration — "Grief"
+        { name: 'Prolonged Grief', cost: 150, effects: { slowDuration: 2500 } },
+        { name: 'Endless Tears', cost: 300, effects: { slowDuration: 4000 } },
+        { name: 'Eternal Sorrow', cost: 700, effects: { slowDuration: 6000, freezeDamage: 2 } },
       ],
-      path3: [ // Permafrost
-        { name: 'Cold Snap', cost: 200, effects: { damage: 1 } },
-        { name: 'Icicles', cost: 400, effects: { damage: 2, fireRateMult: 0.7 } },
-        { name: 'Permafrost', cost: 600, effects: { damage: 3, fireRateMult: 0.5, canDetectCamo: true } },
+      path3: [ // Damage — "Rage"
+        { name: 'Angry Tears', cost: 200, effects: { damage: 1 } },
+        { name: 'Tear Shards', cost: 400, effects: { damage: 2, fireRateMult: 0.7 } },
+        { name: 'Flood of Rage', cost: 600, effects: { damage: 3, fireRateMult: 0.5, canDetectCamo: true } },
       ],
     },
   },
   banana: {
     id: 'banana',
-    name: 'Banana Farm',
+    name: 'Yield Farm',
+    description: 'Money printer go brrr. Generates income.',
     cost: 800,
-    color: 0xffdd00,
-    range: 0, // no attack range
-    fireRate: 5000, // income interval
+    color: 0x44aa44,
+    range: 0,
+    fireRate: 5000,
     damage: 0,
     pierce: 0,
     projectileSpeed: 0,
-    projectileColor: 0xffdd00,
+    projectileColor: 0x44aa44,
     damageType: 'none',
     canDetectCamo: false,
     radius: 14,
+    textureKey: 'tower_yield',
+    projTextureKey: null,
     isGenerator: true,
     incomePerTick: 50,
     upgrades: {
-      path1: [ // More bananas
-        { name: 'More Bananas', cost: 300, effects: { incomePerTick: 80 } },
-        { name: 'Banana Bunch', cost: 600, effects: { incomePerTick: 150 } },
-        { name: 'Banana Republic', cost: 1200, effects: { incomePerTick: 300 } },
+      path1: [ // More income — "APY"
+        { name: 'Higher APY', cost: 300, effects: { incomePerTick: 80 } },
+        { name: 'Degen Yield', cost: 600, effects: { incomePerTick: 150 } },
+        { name: 'Ponzinomics', cost: 1200, effects: { incomePerTick: 300 } },
       ],
-      path2: [ // Auto-collect
-        { name: 'Long Life', cost: 200, effects: { autoCollectDelay: 8000 } },
-        { name: 'Valuable', cost: 400, effects: { incomeMultiplier: 1.5 } },
-        { name: 'Banana Bank', cost: 800, effects: { incomeMultiplier: 2.0, autoCollect: true } },
+      path2: [ // Efficiency — "Auto-compound"
+        { name: 'Auto-Compound', cost: 200, effects: { autoCollectDelay: 8000 } },
+        { name: 'Leveraged Farm', cost: 400, effects: { incomeMultiplier: 1.5 } },
+        { name: 'Infinite Money', cost: 800, effects: { incomeMultiplier: 2.0, autoCollect: true } },
       ],
-      path3: [ // Banana Central
-        { name: 'Faster Production', cost: 250, effects: { fireRateMult: 0.7 } },
-        { name: 'Double Yield', cost: 500, effects: { fireRateMult: 0.5 } },
-        { name: 'Banana Central', cost: 1500, effects: { fireRateMult: 0.3, incomePerTick: 250 } },
+      path3: [ // Speed — "Printer Speed"
+        { name: 'Faster Printer', cost: 250, effects: { fireRateMult: 0.7 } },
+        { name: 'Turbo Printer', cost: 500, effects: { fireRateMult: 0.5 } },
+        { name: 'BRRRRR', cost: 1500, effects: { fireRateMult: 0.3, incomePerTick: 250 } },
       ],
     },
   },
   sniper: {
     id: 'sniper',
-    name: 'Sniper Monkey',
+    name: 'Laser Eyes',
+    description: 'Bitcoin laser eyes. Infinite range, high damage.',
     cost: 400,
-    color: 0x556b2f,
-    range: 9999, // infinite range
+    color: 0xf7931a,
+    range: 9999,
     fireRate: 2000,
     damage: 2,
     pierce: 1,
-    projectileSpeed: 99, // instant
-    projectileColor: 0xffff00,
+    projectileSpeed: 99,
+    projectileColor: 0xff0000,
     damageType: 'sharp',
     canDetectCamo: false,
-    radius: 12,
+    radius: 14,
+    textureKey: 'tower_laser',
+    projTextureKey: 'proj_sniper',
     isSniper: true,
     upgrades: {
-      path1: [ // Damage
-        { name: 'Full Metal Jacket', cost: 300, effects: { damage: 4, damageType: 'normal' } },
-        { name: 'Large Caliber', cost: 500, effects: { damage: 7 } },
-        { name: 'Deadly Precision', cost: 900, effects: { damage: 15 } },
+      path1: [ // Damage — "Conviction"
+        { name: 'HODL Strength', cost: 300, effects: { damage: 4, damageType: 'normal' } },
+        { name: 'Diamond Hands', cost: 500, effects: { damage: 7 } },
+        { name: 'Max Conviction', cost: 900, effects: { damage: 15 } },
       ],
-      path2: [ // Speed
-        { name: 'Faster Firing', cost: 200, effects: { fireRateMult: 0.7 } },
+      path2: [ // Speed — "Trading"
+        { name: 'Day Trader', cost: 200, effects: { fireRateMult: 0.7 } },
         { name: 'Night Vision', cost: 300, effects: { fireRateMult: 0.5, canDetectCamo: true } },
-        { name: 'Semi-Auto', cost: 700, effects: { fireRateMult: 0.25 } },
+        { name: 'HFT Bot', cost: 700, effects: { fireRateMult: 0.25 } },
       ],
-      path3: [ // Utility
+      path3: [ // Utility — "Spread"
         { name: 'Shrapnel', cost: 250, effects: { pierce: 3 } },
-        { name: 'Bouncing Bullet', cost: 400, effects: { pierce: 5, bounceTargets: 3 } },
-        { name: 'Supply Drop', cost: 800, effects: { supplyDropIncome: 200, supplyDropInterval: 15000 } },
+        { name: 'Ricochet', cost: 400, effects: { pierce: 5 } },
+        { name: 'Airdrop', cost: 800, effects: { supplyDropIncome: 200, supplyDropInterval: 15000 } },
       ],
     },
   },
   wizard: {
     id: 'wizard',
-    name: 'Wizard Monkey',
+    name: 'Doge Wizard',
+    description: 'Much magic. Very wow. Detects Dark Pools.',
     cost: 450,
-    color: 0x9933ff,
+    color: 0x7733cc,
     range: 110,
     fireRate: 1200,
     damage: 1,
@@ -178,27 +194,28 @@ export const TOWER_TYPES = {
     projectileSpeed: 7,
     projectileColor: 0xcc66ff,
     damageType: 'magic',
-    canDetectCamo: true, // wizards see camo by default
-    radius: 12,
+    canDetectCamo: true,
+    radius: 14,
+    textureKey: 'tower_doge',
+    projTextureKey: 'proj_magic',
     upgrades: {
-      path1: [ // Fire
-        { name: 'Fireball', cost: 250, effects: { damage: 2, splashRadius: 20 } },
-        { name: 'Wall of Fire', cost: 500, effects: { damage: 3, wallOfFire: true } },
-        { name: 'Dragon\'s Breath', cost: 900, effects: { damage: 5, fireRateMult: 0.5 } },
+      path1: [ // Fire — "Burn"
+        { name: 'Token Burn', cost: 250, effects: { damage: 2, splashRadius: 20 } },
+        { name: 'Dumpster Fire', cost: 500, effects: { damage: 3 } },
+        { name: 'Hellfire', cost: 900, effects: { damage: 5, fireRateMult: 0.5 } },
       ],
-      path2: [ // Lightning
-        { name: 'Arc Lightning', cost: 200, effects: { pierce: 6, chainTargets: 3 } },
-        { name: 'Ball Lightning', cost: 400, effects: { pierce: 10, chainTargets: 5 } },
-        { name: 'Tempest', cost: 800, effects: { pierce: 20, chainTargets: 8, fireRateMult: 0.6 } },
+      path2: [ // Chain — "Viral"
+        { name: 'Chain Lightning', cost: 200, effects: { pierce: 6 } },
+        { name: 'Meme Virus', cost: 400, effects: { pierce: 10 } },
+        { name: 'Omega Wizard', cost: 800, effects: { pierce: 20, fireRateMult: 0.6 } },
       ],
-      path3: [ // Necromancy
-        { name: 'Intense Magic', cost: 200, effects: { damage: 2, rangeMult: 1.3 } },
-        { name: 'Shimmer', cost: 350, effects: { decamoRange: 80 } },
-        { name: 'Archmage', cost: 1000, effects: { damage: 4, fireRateMult: 0.4, rangeMult: 1.5 } },
+      path3: [ // Utility — "Wisdom"
+        { name: 'Ancient Magic', cost: 200, effects: { damage: 2, rangeMult: 1.3 } },
+        { name: 'Reveal All', cost: 350, effects: { decamoRange: 80 } },
+        { name: 'Archmage Doge', cost: 1000, effects: { damage: 4, fireRateMult: 0.4, rangeMult: 1.5 } },
       ],
     },
   },
 };
 
-// Placement footprint (radius) for tower collision checking
 export const TOWER_FOOTPRINT = 20;

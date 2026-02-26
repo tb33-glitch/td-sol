@@ -14,13 +14,12 @@ export default function TowerShop({
   sellSelectedTower,
   upgradeSelectedTower,
   deselectTower,
-  upgradeSystem,
 }) {
   return (
     <div className="td-shop">
       {!selectedTower ? (
         <>
-          <div className="td-shop-title">Towers</div>
+          <div className="td-shop-title">Deploy Memes</div>
           <div className="td-shop-grid">
             {SHOP_TOWERS.map((id) => {
               const tower = TOWER_TYPES[id];
@@ -30,20 +29,23 @@ export default function TowerShop({
                   key={id}
                   className={`td-shop-item ${!canAfford ? 'td-shop-disabled' : ''}`}
                   onClick={() => canAfford && selectTowerToPlace(id)}
-                  title={`${tower.name} - $${tower.cost}`}
+                  title={tower.description}
                 >
                   <div
                     className="td-shop-icon"
                     style={{ backgroundColor: colorToHex(tower.color) }}
                   />
-                  <div className="td-shop-name">{tower.name}</div>
+                  <div className="td-shop-info">
+                    <div className="td-shop-name">{tower.name}</div>
+                    <div className="td-shop-desc">{tower.description}</div>
+                  </div>
                   <div className="td-shop-cost">${tower.cost}</div>
                 </button>
               );
             })}
           </div>
           <div className="td-shop-hint">
-            Right-click or ESC to cancel placement
+            Right-click / ESC to cancel
           </div>
         </>
       ) : (
@@ -63,7 +65,6 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
   const towerDef = TOWER_TYPES[tower.id];
   if (!towerDef) return null;
 
-  // Calculate available upgrades
   const upgrades = getAvailableUpgrades(tower, towerDef);
 
   return (
@@ -75,10 +76,12 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
         />
         <div>
           <div className="td-tower-name">{towerDef.name}</div>
+          <div className="td-tower-desc">{towerDef.description}</div>
           <div className="td-tower-stats">
-            {tower.stats.damage > 0 && <span>DMG: {tower.stats.damage}</span>}
-            {tower.stats.range > 0 && tower.stats.range < 9999 && <span>RNG: {Math.round(tower.stats.range)}</span>}
-            {tower.stats.fireRate > 0 && <span>SPD: {(1000 / tower.stats.fireRate).toFixed(1)}/s</span>}
+            {tower.stats.damage > 0 && <span>DMG {tower.stats.damage}</span>}
+            {tower.stats.range > 0 && tower.stats.range < 9999 && <span>RNG {Math.round(tower.stats.range)}</span>}
+            {tower.stats.range >= 9999 && <span>RNG INF</span>}
+            {tower.stats.fireRate > 0 && <span>SPD {(1000 / tower.stats.fireRate).toFixed(1)}/s</span>}
           </div>
         </div>
       </div>
@@ -104,7 +107,7 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
                       className={`td-upgrade-tier ${isOwned ? 'owned' : ''} ${isNext && canAfford ? 'available' : ''} ${isNext && !canAfford ? 'too-expensive' : ''}`}
                       onClick={() => isNext && canAfford && onUpgrade(path, tier + 1)}
                       disabled={!isNext || !canAfford}
-                      title={`${upgrade.name} - $${upgrade.cost}`}
+                      title={`${upgrade.name} — $${upgrade.cost}`}
                     >
                       <div className="td-upgrade-name">{upgrade.name}</div>
                       {!isOwned && <div className="td-upgrade-cost">${upgrade.cost}</div>}
@@ -129,7 +132,6 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
   );
 }
 
-// Simplified version of UpgradeSystem.getAvailableUpgrades for React
 function getAvailableUpgrades(tower, towerDef) {
   const upgrades = [];
   const paths = ['path1', 'path2', 'path3'];
@@ -140,8 +142,6 @@ function getAvailableUpgrades(tower, towerDef) {
 
     if (currentTier < pathUpgrades.length) {
       const nextUpgrade = pathUpgrades[currentTier];
-
-      // Tier 3 restriction
       const otherPathHasTier3 = paths.some(
         (p) => p !== path && (tower.upgradeLevels[p] || 0) >= 3
       );

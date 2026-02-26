@@ -13,7 +13,7 @@ export default class Bloon extends Phaser.GameObjects.Container {
     this.currentSpeed = this.baseSpeed;
     this.isCamo = this.bloonData.isCamo || false;
     this.isMoab = this.bloonData.isMoab || false;
-    this.displayRadius = this.bloonData.radius || (this.isMoab ? 20 : 8);
+    this.displayRadius = this.bloonData.radius || (this.isMoab ? 20 : 10);
     this.active = true;
 
     // Status effects
@@ -21,10 +21,23 @@ export default class Bloon extends Phaser.GameObjects.Container {
     this.slowTimer = 0;
     this.stunTimer = 0;
 
-    // Draw the bloon
-    this.graphics = scene.add.graphics();
-    this.add(this.graphics);
-    this.drawBloon();
+    // Sprite — use texture if available, fallback to graphics
+    const textureKey = this.bloonData.textureKey;
+    if (textureKey && scene.textures.exists(textureKey)) {
+      this.sprite = scene.add.image(0, 0, textureKey);
+      const displaySize = this.isMoab ? 40 : 22;
+      this.sprite.setDisplaySize(displaySize, displaySize);
+      this.add(this.sprite);
+
+      // Camo — lower alpha
+      if (this.isCamo) {
+        this.sprite.setAlpha(0.6);
+      }
+    } else {
+      this.graphics = scene.add.graphics();
+      this.add(this.graphics);
+      this.drawFallback();
+    }
 
     // HP bar for MOABs
     if (this.isMoab) {
@@ -36,31 +49,15 @@ export default class Bloon extends Phaser.GameObjects.Container {
     scene.add.existing(this);
     this.setDepth(10);
 
-    // Update position immediately
     this.updatePosition();
   }
 
-  drawBloon() {
+  drawFallback() {
     this.graphics.clear();
-
-    // Camo pattern (striped)
-    if (this.isCamo) {
-      this.graphics.fillStyle(this.bloonData.color, 0.8);
-      this.graphics.fillCircle(0, 0, this.displayRadius);
-      this.graphics.lineStyle(2, 0x224422, 0.6);
-      for (let i = -this.displayRadius; i < this.displayRadius; i += 4) {
-        this.graphics.lineBetween(i, -this.displayRadius, i + 3, this.displayRadius);
-      }
-    } else {
-      this.graphics.fillStyle(this.bloonData.color, 1);
-      this.graphics.fillCircle(0, 0, this.displayRadius);
-    }
-
-    // Outline
+    this.graphics.fillStyle(this.bloonData.color, this.isCamo ? 0.6 : 1);
+    this.graphics.fillCircle(0, 0, this.displayRadius);
     this.graphics.lineStyle(1.5, 0x000000, 0.4);
     this.graphics.strokeCircle(0, 0, this.displayRadius);
-
-    // Shine effect
     this.graphics.fillStyle(0xffffff, 0.3);
     this.graphics.fillCircle(-this.displayRadius * 0.25, -this.displayRadius * 0.25, this.displayRadius * 0.35);
   }
@@ -73,11 +70,9 @@ export default class Bloon extends Phaser.GameObjects.Container {
     const barHeight = 4;
     const y = -this.displayRadius - 8;
 
-    // Background
     this.hpBar.fillStyle(0x000000, 0.5);
     this.hpBar.fillRect(-barWidth / 2, y, barWidth, barHeight);
 
-    // HP fill
     const pct = this.hp / this.bloonData.hp;
     const color = pct > 0.5 ? 0x00ff00 : pct > 0.25 ? 0xffff00 : 0xff0000;
     this.hpBar.fillStyle(color, 0.8);
@@ -101,14 +96,14 @@ export default class Bloon extends Phaser.GameObjects.Container {
   update(delta) {
     if (!this.active) return;
 
-    // Update stun
+    // Stun
     if (this.stunTimer > 0) {
       this.stunTimer -= delta;
       this.currentSpeed = 0;
-      return; // stunned, don't move
+      return;
     }
 
-    // Update slow
+    // Slow
     if (this.slowTimer > 0) {
       this.slowTimer -= delta;
       this.currentSpeed = this.baseSpeed * this.slowAmount;
@@ -118,9 +113,8 @@ export default class Bloon extends Phaser.GameObjects.Container {
     }
 
     // Move along path
-    // Speed is normalized: 1.0 speed = cross the map in ~15 seconds
     const speedFactor = this.currentSpeed * 0.0008;
-    this.pathProgress += speedFactor * (delta / 16.67); // normalize to 60fps
+    this.pathProgress += speedFactor * (delta / 16.67);
 
     this.updatePosition();
 
@@ -138,7 +132,6 @@ export default class Bloon extends Phaser.GameObjects.Container {
   reachedEnd() {
     if (!this.active) return;
     this.active = false;
-    // Damage lives based on RBE
     this.scene.loseLife(this.bloonData.rbe);
     this.destroy();
   }
@@ -151,6 +144,7 @@ export default class Bloon extends Phaser.GameObjects.Container {
   destroy() {
     if (this.graphics) this.graphics.destroy();
     if (this.hpBar) this.hpBar.destroy();
+    if (this.sprite) this.sprite.destroy();
     super.destroy();
   }
 }

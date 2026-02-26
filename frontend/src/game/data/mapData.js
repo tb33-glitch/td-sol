@@ -1,14 +1,12 @@
 // Maps define path waypoints (normalized 0-1 coordinates) and playable area bounds.
-// Coordinates are normalized and scaled to actual canvas size at runtime.
 
 export const MAPS = {
   meadow: {
     id: 'meadow',
-    name: 'Meadow',
-    backgroundColor: 0x4a8c3f,
-    pathColor: 0xc4a35a,
+    name: 'DEX Floor',
+    backgroundColor: 0x0a1628,
+    pathColor: 0x1a3a5e,
     pathWidth: 30,
-    // Path waypoints as normalized [x, y] (0-1 range, scaled to canvas size)
     waypoints: [
       [0.0, 0.3],
       [0.2, 0.3],
@@ -19,14 +17,12 @@ export const MAPS = {
       [0.75, 0.8],
       [1.0, 0.8],
     ],
-    // Areas where towers CANNOT be placed (the path + buffer)
-    // Calculated dynamically from waypoints + pathWidth
   },
   desert: {
     id: 'desert',
-    name: 'Desert',
-    backgroundColor: 0xd4a857,
-    pathColor: 0x8b6914,
+    name: 'Mempool',
+    backgroundColor: 0x14100a,
+    pathColor: 0x3a2a10,
     pathWidth: 28,
     waypoints: [
       [0.0, 0.5],
@@ -40,9 +36,9 @@ export const MAPS = {
   },
   river: {
     id: 'river',
-    name: 'River Crossing',
-    backgroundColor: 0x3a7a3a,
-    pathColor: 0xb8a060,
+    name: 'Blockchain',
+    backgroundColor: 0x0a0a1e,
+    pathColor: 0x1a1a4a,
     pathWidth: 26,
     waypoints: [
       [0.0, 0.15],

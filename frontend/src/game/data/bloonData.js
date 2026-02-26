@@ -1,74 +1,89 @@
-// Bloon types: Red → Blue → Green → Yellow → Pink
+// Enemy types — FUD forces attacking your portfolio
 // Each pops into a child of the layer below
 
 export const BLOON_TYPES = {
   red: {
     id: 'red',
-    color: 0xff0000,
+    name: 'Red Candle',
+    color: 0xcc2222,
     hp: 1,
     speed: 1.0,
-    rbe: 1, // red bloon equivalent (total pops to fully destroy)
+    rbe: 1,
     children: [],
     immunities: [],
+    textureKey: 'enemy_candle',
   },
   blue: {
     id: 'blue',
-    color: 0x0066ff,
+    name: 'FUD Tweet',
+    color: 0x1da1f2,
     hp: 1,
     speed: 1.2,
     rbe: 2,
     children: ['red'],
     immunities: [],
+    textureKey: 'enemy_fud',
   },
   green: {
     id: 'green',
-    color: 0x00cc00,
+    name: 'Bear',
+    color: 0x338833,
     hp: 1,
     speed: 1.5,
     rbe: 3,
     children: ['blue'],
     immunities: [],
+    textureKey: 'enemy_bear',
   },
   yellow: {
     id: 'yellow',
-    color: 0xffcc00,
+    name: 'SEC Suit',
+    color: 0xccaa22,
     hp: 1,
     speed: 2.0,
     rbe: 4,
     children: ['green'],
     immunities: [],
+    textureKey: 'enemy_suit',
   },
   pink: {
     id: 'pink',
-    color: 0xff69b4,
+    name: 'Rug Pull',
+    color: 0xdd4488,
     hp: 1,
     speed: 2.5,
     rbe: 5,
     children: ['yellow'],
     immunities: [],
+    textureKey: 'enemy_rug',
   },
   lead: {
     id: 'lead',
-    color: 0x666666,
+    name: 'Whale Wallet',
+    color: 0x777777,
     hp: 1,
     speed: 0.8,
     rbe: 25,
     children: ['pink', 'pink'],
-    immunities: ['sharp'], // immune to darts
+    immunities: ['sharp'],
+    textureKey: 'enemy_whale',
   },
   camo: {
     id: 'camo',
-    color: 0x336633,
+    name: 'Dark Pool',
+    color: 0x442266,
     hp: 1,
     speed: 2.0,
     rbe: 4,
     children: ['green'],
-    immunities: ['detection'], // invisible to towers without camo detection
+    immunities: ['detection'],
     isCamo: true,
+    textureKey: 'enemy_darkpool',
   },
   moab: {
     id: 'moab',
-    color: 0x0044aa,
+    name: 'Bear Market',
+    color: 0xaa1111,
     hp: 200,
     speed: 0.5,
     rbe: 220,
@@ -76,11 +91,9 @@ export const BLOON_TYPES = {
     immunities: ['freeze'],
     isMoab: true,
     radius: 20,
+    textureKey: 'enemy_bearmarket',
   },
 };
 
-// Cash earned per bloon pop layer
 export const POP_CASH = 1;
-
-// Cash earned per bloon fully destroyed
 export const DESTROY_BONUS = 0;
