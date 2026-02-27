@@ -30,15 +30,22 @@ export default function BloonsTDGame() {
   return (
     <GameView
       mapId={gameConfig?.map || 'meadow'}
+      difficulty={gameConfig?.difficulty || 'medium'}
+      options={{
+        heroId: gameConfig?.heroId,
+        challenge: gameConfig?.challenge,
+        sandbox: gameConfig?.sandbox,
+      }}
       onRestart={() => window.location.reload()}
       onMenu={handleBackToMenu}
     />
   );
 }
 
-function GameView({ mapId, onRestart, onMenu }) {
+function GameView({ mapId, difficulty, options = {}, onRestart, onMenu }) {
   const {
     initGame,
+    gameRef,
     lives,
     money,
     wave,
@@ -54,7 +61,15 @@ function GameView({ mapId, onRestart, onMenu }) {
     deselectTower,
     sellSelectedTower,
     upgradeSelectedTower,
-  } = useBloonsTD(mapId);
+    cycleTargeting,
+    abilities,
+    activateAbility,
+    wavePreview,
+    heroLevel,
+    activeSynergies,
+    activeEvent,
+    bossHP,
+  } = useBloonsTD(mapId, difficulty, options);
 
   return (
     <div className="td-game-container">
@@ -71,6 +86,12 @@ function GameView({ mapId, onRestart, onMenu }) {
           startWave={startWave}
           toggleSpeed={toggleSpeed}
           togglePause={togglePause}
+          abilities={abilities}
+          activateAbility={activateAbility}
+          wavePreview={wavePreview}
+          heroLevel={heroLevel}
+          activeEvent={activeEvent}
+          bossHP={bossHP}
         />
       </div>
 
@@ -81,6 +102,9 @@ function GameView({ mapId, onRestart, onMenu }) {
         sellSelectedTower={sellSelectedTower}
         upgradeSelectedTower={upgradeSelectedTower}
         deselectTower={deselectTower}
+        cycleTargeting={cycleTargeting}
+        gameRef={gameRef}
+        activeSynergies={activeSynergies}
       />
 
       {gameOver && (

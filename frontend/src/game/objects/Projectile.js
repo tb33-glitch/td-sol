@@ -21,6 +21,10 @@ export default class Projectile extends Phaser.GameObjects.Container {
     this.lifetime = 3000;
     this.lived = 0;
     this.isInstant = stats.isSniper || (this.speed >= 99);
+    this.isHoming = stats.isHoming || false;
+    this.isBoomerang = stats.isBoomerang || false;
+    this.hasReturned = false;
+    this.sourceTower = stats._sourceTower || null;
 
     // Sprite — use texture if available, fallback to graphics
     const textureKey = stats.projTextureKey;
@@ -75,6 +79,31 @@ export default class Projectile extends Phaser.GameObjects.Container {
     if (this.lived >= this.lifetime) {
       this.active = false;
       return;
+    }
+
+    // Homing — re-aim toward target each frame
+    if (this.isHoming && this.target && this.target.active) {
+      const dx = this.target.x - this.x;
+      const dy = this.target.y - this.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 0) {
+        this.vx = (dx / dist) * this.speed;
+        this.vy = (dy / dist) * this.speed;
+        if (this.sprite) {
+          this.sprite.setRotation(Math.atan2(dy, dx));
+        }
+      }
+    }
+
+    // Boomerang — reverse direction at half lifetime
+    if (this.isBoomerang && !this.hasReturned && this.lived >= this.lifetime * 0.4) {
+      this.hasReturned = true;
+      this.vx = -this.vx;
+      this.vy = -this.vy;
+      this.hitBloons.clear(); // allow hitting on return trip
+      if (this.sprite) {
+        this.sprite.setRotation(Math.atan2(this.vy, this.vx));
+      }
     }
 
     this.x += this.vx * (delta / 16.67);

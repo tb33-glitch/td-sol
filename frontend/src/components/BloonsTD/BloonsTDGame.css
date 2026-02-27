@@ -454,6 +454,92 @@
   box-shadow: 0 0 16px rgba(68, 255, 136, 0.3);
 }
 
+.td-gameover-tokens {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.td-gameover-tokens-title {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.td-gameover-token-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.td-gameover-token-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: #111133;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.td-token-name {
+  color: #aaa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.td-token-pops {
+  color: #ff4466;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.td-pit-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #111133;
+  border: 1px solid #1a1a3e;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.td-pit-status.loaded {
+  border-color: #224422;
+  color: #44aa44;
+}
+
+.td-pit-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #444;
+  flex-shrink: 0;
+}
+
+.td-pit-status.loaded .td-pit-dot {
+  background: #44ff88;
+  box-shadow: 0 0 6px rgba(68, 255, 136, 0.4);
+}
+
+.td-shop-sprite {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  image-rendering: pixelated;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 /* ===== Lobby ===== */
 .td-lobby {
   width: 100vw;
@@ -589,4 +675,163 @@
   color: #444 !important;
   font-style: italic;
   margin-top: 8px !important;
+}
+
+/* ===== Targeting Button ===== */
+.td-target-btn {
+  margin-top: 4px;
+  font-size: 10px;
+  padding: 3px 8px;
+  color: #ffaa33;
+  border-color: #664411;
+}
+
+.td-tower-pops {
+  font-size: 10px;
+  color: #ff4466;
+  margin-top: 3px;
+}
+
+/* ===== Difficulty Selection ===== */
+.td-difficulty-select {
+  margin-bottom: 20px;
+}
+
+.td-difficulty-select h3 {
+  color: #666;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.td-difficulty-grid {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.td-difficulty-option {
+  background: #111133;
+  border: 2px solid #1a1a3e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #fff;
+  font-family: inherit;
+  min-width: 110px;
+  text-align: center;
+}
+
+.td-difficulty-option:hover {
+  border-color: #444;
+}
+
+.td-difficulty-option.selected {
+  border-color: #44ff88 !important;
+  box-shadow: 0 0 12px rgba(68, 255, 136, 0.2);
+}
+
+.td-difficulty-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.td-difficulty-desc {
+  font-size: 10px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.td-difficulty-stats {
+  font-size: 10px;
+  color: #44ff88;
+  margin-top: 4px;
+}
+
+/* ===== Ability Bar ===== */
+.td-ability-bar {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.td-ability-btn {
+  position: relative;
+  background: #111133;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #aaa;
+  font-family: inherit;
+  font-size: 11px;
+  min-width: 80px;
+  text-align: center;
+  overflow: hidden;
+  transition: all 0.15s;
+}
+
+.td-ability-btn.ready {
+  border-color: #44ff88;
+  color: #44ff88;
+  box-shadow: 0 0 8px rgba(68, 255, 136, 0.2);
+}
+
+.td-ability-btn.ready:hover {
+  background: #1a2a1a;
+  box-shadow: 0 0 16px rgba(68, 255, 136, 0.4);
+}
+
+.td-ability-btn.cooling {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.td-ability-name {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+}
+
+.td-ability-cooldown {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #ff4466;
+  transition: width 0.1s linear;
+}
+
+.td-ability-timer {
+  position: relative;
+  z-index: 1;
+  font-size: 9px;
+  color: #666;
+}
+
+/* ===== Wave Preview ===== */
+.td-wave-preview {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.td-wave-preview-type {
+  background: #111133;
+  border: 1px solid #222255;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 9px;
+  color: #aaa;
+  text-transform: uppercase;
 }

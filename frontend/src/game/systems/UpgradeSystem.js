@@ -1,8 +1,76 @@
-import { TOWER_TYPES } from '../data/towerData';
+import { TOWER_TYPES, PARAGON_DATA } from '../data/towerData';
+import eventBus from '../GameEventBus';
 
 export default class UpgradeSystem {
   constructor(scene) {
     this.scene = scene;
+  }
+
+  canParagon(towerId) {
+    if (!PARAGON_DATA[towerId]) return false;
+    // Need 3 tier-5 towers of this type (tier-5 on any path)
+    const t5s = this.scene.towers.filter(t =>
+      t.towerId === towerId &&
+      !t.isParagon &&
+      (t.upgradeLevels.path1 >= 5 || t.upgradeLevels.path2 >= 5 || t.upgradeLevels.path3 >= 5)
+    );
+    return t5s.length >= 3;
+  }
+
+  executeParagon(towerId) {
+    const paragonDef = PARAGON_DATA[towerId];
+    if (!paragonDef) return null;
+
+    // Find 3 tier-5 towers
+    const t5s = this.scene.towers.filter(t =>
+      t.towerId === towerId &&
+      !t.isParagon &&
+      (t.upgradeLevels.path1 >= 5 || t.upgradeLevels.path2 >= 5 || t.upgradeLevels.path3 >= 5)
+    );
+    if (t5s.length < 3) return null;
+
+    const toMerge = t5s.slice(0, 3);
+
+    // Calculate centroid position
+    const cx = toMerge.reduce((s, t) => s + t.x, 0) / 3;
+    const cy = toMerge.reduce((s, t) => s + t.y, 0) / 3;
+
+    // Remove the 3 towers
+    for (const tower of toMerge) {
+      const idx = this.scene.towers.indexOf(tower);
+      if (idx >= 0) this.scene.towers.splice(idx, 1);
+      this.scene.abilitySystem.unregisterTower(tower);
+      tower.destroy();
+    }
+
+    // Create paragon tower
+    const Tower = require('../objects/Tower').default;
+    const paragon = new Tower(this.scene, cx, cy, towerId);
+    paragon.isParagon = true;
+
+    // Override stats with paragon stats
+    for (const [key, value] of Object.entries(paragonDef.stats)) {
+      paragon.stats[key] = value;
+    }
+
+    // Paragon can't be sold or upgraded further
+    paragon.totalSpent = 999999;
+    paragon.upgradeLevels = { path1: 5, path2: 5, path3: 5 };
+
+    // Apply paragon passive
+    paragon._paragonPassive = paragonDef.passive;
+    paragon._paragonDef = paragonDef;
+    paragon._shockwaveCount = 0;
+
+    this.scene.towers.push(paragon);
+    this.scene.synergySystem.checkSynergies();
+
+    // Flash effect
+    this.scene.createFloatingText(cx, cy - 20, `PARAGON: ${paragonDef.name}!`, '#ffcc00');
+
+    eventBus.emit('paragonCreated', { towerId, name: paragonDef.name });
+
+    return paragon;
   }
 
   getAvailableUpgrades(tower) {
@@ -11,49 +79,39 @@ export default class UpgradeSystem {
 
     const upgrades = [];
     const paths = ['path1', 'path2', 'path3'];
-    const maxTierOnOtherPath = this.getMaxTierOnOtherPaths(tower);
 
-    paths.forEach((path) => {
+    // BTD6-style: one path to 5, one to 2, third stays 0
+    // Get current levels sorted descending
+    const levels = paths.map(p => tower.upgradeLevels[p] || 0);
+
+    paths.forEach((path, idx) => {
       const currentTier = tower.upgradeLevels[path] || 0;
       const pathUpgrades = towerDef.upgrades[path];
 
       if (currentTier < pathUpgrades.length) {
         const nextUpgrade = pathUpgrades[currentTier];
+        const wouldBe = currentTier + 1;
 
-        // Check tier 3 restriction: only one path can reach tier 3
-        const wouldBeTier3 = currentTier === 2; // 0-indexed, so tier index 2 = tier 3
-        const otherPathHasTier3 = paths.some(p =>
-          p !== path && (tower.upgradeLevels[p] || 0) >= 3
-        );
+        // Build hypothetical levels if this upgrade were applied
+        const hypothetical = [...levels];
+        hypothetical[idx] = wouldBe;
+        hypothetical.sort((a, b) => b - a); // descending
 
-        if (wouldBeTier3 && otherPathHasTier3) return; // blocked
-
-        // Also can't upgrade a path beyond tier 1 if another path is already at tier 3
-        if (currentTier >= 1 && maxTierOnOtherPath >= 3) {
-          // Check if this path already started (has at least 1 tier)
-          // If another path is tier 3, this path can only go to tier 1
-          const pathsAtTier3 = paths.filter(p =>
-            p !== path && (tower.upgradeLevels[p] || 0) >= 3
-          );
-          if (pathsAtTier3.length > 0 && currentTier >= 1) return;
-        }
+        // Check constraint: [any, <=2, <=0]
+        if (hypothetical[1] > 2 || hypothetical[2] > 0) return; // blocked
 
         upgrades.push({
           path,
-          tier: currentTier + 1,
+          tier: wouldBe,
           name: nextUpgrade.name,
           cost: nextUpgrade.cost,
           effects: nextUpgrade.effects,
+          ability: nextUpgrade.ability || null,
         });
       }
     });
 
     return upgrades;
-  }
-
-  getMaxTierOnOtherPaths(tower) {
-    const paths = ['path1', 'path2', 'path3'];
-    return Math.max(0, ...paths.map(p => tower.upgradeLevels[p] || 0));
   }
 
   applyUpgrade(tower, path, tier) {
@@ -113,10 +171,27 @@ export default class UpgradeSystem {
         case 'freezeDamage':
           tower.stats.freezeDamage = value;
           break;
+        case 'damageType':
+          tower.stats.damageType = value;
+          break;
+        case 'decamoRange':
+          tower.stats.decamoRange = value;
+          break;
+        case 'supplyDropIncome':
+          tower.stats.supplyDropIncome = value;
+          break;
+        case 'supplyDropInterval':
+          tower.stats.supplyDropInterval = value;
+          break;
         default:
           tower.stats[key] = value;
           break;
       }
+    }
+
+    // Register ability if upgrade has one
+    if (upgrade.ability && this.scene.abilitySystem) {
+      this.scene.abilitySystem.registerAbility(tower, upgrade.ability);
     }
 
     // Update visual (range circle if selected)

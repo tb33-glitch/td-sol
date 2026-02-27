@@ -37,12 +37,28 @@ export default class Tower extends Phaser.GameObjects.Container {
       moabDamageMult: 1,
       freezeDamage: 0,
       projTextureKey: def.projTextureKey || null,
+      decamoRange: 0,
+      supplyDropIncome: 0,
+      supplyDropInterval: 0,
+      damageType: def.damageType,
+      isHoming: def.isHoming || false,
+      isBoomerang: def.isBoomerang || false,
+      isBuffer: def.isBuffer || false,
+      isSpike: def.isSpike || false,
+      buffDamageMult: def.buffDamageMult || 1,
+      buffFireRateMult: def.buffFireRateMult || 1,
+      buffRange: def.buffRange || 0,
     };
+
+    // Per-tower pop count
+    this.pops = 0;
+    this._lastBuffTime = 0;
 
     this.lastFireTime = 0;
     this.lastIncomeTime = 0;
     this.targetBloon = null;
     this.selected = false;
+    this.targetingMode = 'first'; // first, last, strong, close
 
     // Sprite — use texture if available, fallback to graphics
     const textureKey = def.textureKey;
@@ -103,12 +119,49 @@ export default class Tower extends Phaser.GameObjects.Container {
   }
 
   update(time, delta) {
+    // Skip if disabled by boss
+    if (this._disabled) return;
+
     if (this.stats.isGenerator) {
       this.updateGenerator(time, delta);
+      // Supply drop income (for snipers with supply drop upgrade)
       return;
     }
 
-    if (this.stats.range === 0) return;
+    // Supply drop income timer
+    if (this.stats.supplyDropIncome > 0 && this.stats.supplyDropInterval > 0) {
+      if (!this._lastSupplyDrop) this._lastSupplyDrop = time;
+      if (time - this._lastSupplyDrop >= this.stats.supplyDropInterval) {
+        this._lastSupplyDrop = time;
+        this.scene.economySystem.addCash(this.stats.supplyDropIncome);
+      }
+    }
+
+    // Decamo aura — strip camo from bloons in range
+    if (this.stats.decamoRange > 0) {
+      for (const bloon of this.scene.bloons) {
+        if (!bloon.active || !bloon.isCamo) continue;
+        const dx = bloon.x - this.x;
+        const dy = bloon.y - this.y;
+        if (dx * dx + dy * dy <= this.stats.decamoRange * this.stats.decamoRange) {
+          bloon.removeCamo();
+        }
+      }
+    }
+
+    // Buffer tower — buff nearby towers periodically
+    if (this.stats.isBuffer && time - this._lastBuffTime >= 2000) {
+      this._lastBuffTime = time;
+      this.applyBuffs();
+    }
+
+    // Spike factory — place spike traps on the path
+    if (this.stats.isSpike) {
+      this.updateSpikeFactory(time);
+      // Still allow aura/projectile firing if it has range
+    }
+
+    if (this.stats.range === 0 && !this.stats.isSpike) return;
 
     // Aura towers (Wojak) don't fire projectiles
     if (this.stats.isAura) {
@@ -132,26 +185,56 @@ export default class Tower extends Phaser.GameObjects.Container {
     if (!bloons || bloons.length === 0) return null;
 
     let best = null;
-    let bestProgress = -1;
+    let bestValue = null;
 
     for (const bloon of bloons) {
       if (!bloon.active) continue;
       if (bloon.isCamo && !this.stats.canDetectCamo) continue;
 
+      let dist = 0;
       if (!this.stats.isSniper) {
         const dx = bloon.x - this.x;
         const dy = bloon.y - this.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        dist = Math.sqrt(dx * dx + dy * dy);
         if (dist > this.stats.range) continue;
       }
 
-      if (bloon.pathProgress > bestProgress) {
-        bestProgress = bloon.pathProgress;
+      let value;
+      switch (this.targetingMode) {
+        case 'last':
+          value = -bloon.pathProgress; // lowest progress = best
+          break;
+        case 'strong':
+          value = bloon.hp; // highest HP = best
+          break;
+        case 'close':
+          if (this.stats.isSniper) {
+            // Snipers fallback to first for close mode
+            value = bloon.pathProgress;
+          } else {
+            value = -dist; // nearest = best (negate so higher = closer)
+          }
+          break;
+        case 'first':
+        default:
+          value = bloon.pathProgress; // highest progress = best
+          break;
+      }
+
+      if (bestValue === null || value > bestValue) {
+        bestValue = value;
         best = bloon;
       }
     }
 
     return best;
+  }
+
+  cycleTargeting() {
+    const modes = ['first', 'last', 'strong', 'close'];
+    const idx = modes.indexOf(this.targetingMode);
+    this.targetingMode = modes[(idx + 1) % modes.length];
+    eventBus.emit('targetingChanged', { tower: this, mode: this.targetingMode });
   }
 
   fire(time) {
@@ -177,7 +260,8 @@ export default class Tower extends Phaser.GameObjects.Container {
         }
       }
 
-      const proj = new Projectile(this.scene, startX, startY, this.targetBloon, this.stats);
+      const projStats = { ...this.stats, _sourceTower: this };
+      const proj = new Projectile(this.scene, startX, startY, this.targetBloon, projStats);
       this.scene.addProjectile(proj);
     }
   }
@@ -222,6 +306,67 @@ export default class Tower extends Phaser.GameObjects.Container {
         yoyo: true,
       });
     }
+  }
+
+  applyBuffs() {
+    const buffRange = this.stats.buffRange || 80;
+    for (const tower of this.scene.towers) {
+      if (tower === this) continue;
+      if (tower.stats.isGenerator) continue;
+      const dx = tower.x - this.x;
+      const dy = tower.y - this.y;
+      if (dx * dx + dy * dy <= buffRange * buffRange) {
+        // Apply temporary buff (refreshed every 2s)
+        tower._buffedDamageMult = this.stats.buffDamageMult;
+        tower._buffedFireRateMult = this.stats.buffFireRateMult;
+        tower._buffExpiry = this.scene.gameTime + 2500;
+      }
+    }
+  }
+
+  updateSpikeFactory(time) {
+    if (time - this.lastFireTime < this.stats.fireRate) return;
+    this.lastFireTime = time;
+
+    // Place a spike pile at a random point on the path
+    const progress = Math.random();
+    const pos = this.scene.pathSystem.getPositionAtProgress(progress);
+
+    // Create a "spike" bloon obstacle — implemented as a special projectile
+    const spikeStats = {
+      ...this.stats,
+      projectileSpeed: 0,
+      isSniper: false,
+      _sourceTower: this,
+    };
+    const spike = new Projectile(this.scene, pos.x, pos.y, null, spikeStats);
+    spike.vx = 0;
+    spike.vy = 0;
+    spike.lifetime = 30000; // spikes last 30 seconds
+    spike.lived = 0;
+    spike.active = true;
+
+    // Draw spike as a small circle
+    if (!spike.sprite && !spike.graphics) {
+      spike.graphics = this.scene.add.graphics();
+      spike.add(spike.graphics);
+    }
+    if (spike.graphics) {
+      spike.graphics.clear();
+      spike.graphics.fillStyle(0xcccccc, 0.9);
+      spike.graphics.fillCircle(0, 0, 4);
+      spike.graphics.lineStyle(1, 0x666666, 0.8);
+      // Draw spike points
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2;
+        spike.graphics.lineBetween(
+          0, 0,
+          Math.cos(angle) * 6, Math.sin(angle) * 6
+        );
+      }
+    }
+
+    this.scene.addProjectile(spike);
   }
 
   getSellValue() {

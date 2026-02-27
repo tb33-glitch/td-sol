@@ -13,6 +13,12 @@ export default function GameOverScreen({ data, onRestart, onMenu }) {
           {data.won ? 'The FUD has been defeated. Your bags are safe.' : 'The bears got through. Your portfolio is rekt.'}
         </p>
 
+        {data.challenge && data.won && (
+          <div className="td-challenge-badge">
+            Challenge Complete: {data.challenge}
+          </div>
+        )}
+
         <div className="td-gameover-stats">
           <div className="td-gameover-stat">
             <span>Waves Survived</span>
@@ -23,10 +29,26 @@ export default function GameOverScreen({ data, onRestart, onMenu }) {
             <span>{data.totalPops}</span>
           </div>
           <div className="td-gameover-stat">
-            <span>Memes Deployed</span>
+            <span>Punks Deployed</span>
             <span>{data.towersPlaced}</span>
           </div>
         </div>
+
+        {data.popStats && data.popStats.length > 0 && (
+          <div className="td-gameover-tokens">
+            <div className="td-gameover-tokens-title">Tokens Destroyed</div>
+            <div className="td-gameover-token-list">
+              {data.popStats.slice(0, 10).map((token) => (
+                <div key={token.address} className="td-gameover-token-row">
+                  <span className="td-token-name" title={token.address}>
+                    {token.symbol || token.name}
+                  </span>
+                  <span className="td-token-pops">x{token.pops}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="td-gameover-actions">
           <button className="td-btn td-restart-btn" onClick={onRestart}>

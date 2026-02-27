@@ -1,10 +1,48 @@
+import { useRef, useEffect, useState } from 'react';
 import { TOWER_TYPES } from '../../game/data/towerData';
+import { TOWER_TEXTURES } from '../../game/sprites/SpriteRenderer';
 import './BloonsTDGame.css';
 
-const SHOP_TOWERS = ['dart', 'bomb', 'ice', 'banana', 'sniper', 'wizard'];
+const SHOP_TOWERS = ['dart', 'bomb', 'ice', 'banana', 'sniper', 'wizard', 'mev', 'flipper', 'alchemist', 'spikefactory'];
 
 function colorToHex(color) {
   return '#' + color.toString(16).padStart(6, '0');
+}
+
+// Extract sprite from Phaser texture manager as a data URL
+function useSpriteDataUrls(gameRef) {
+  const [urls, setUrls] = useState({});
+
+  useEffect(() => {
+    // Try to extract textures once game is ready
+    const tryExtract = () => {
+      if (!gameRef?.current?.textures) return false;
+      const textures = gameRef.current.textures;
+      const result = {};
+      for (const [towerId, textureKey] of Object.entries(TOWER_TEXTURES)) {
+        if (textures.exists(textureKey)) {
+          try {
+            const source = textures.get(textureKey).getSourceImage();
+            if (source instanceof HTMLCanvasElement) {
+              result[towerId] = source.toDataURL();
+            }
+          } catch { /* skip */ }
+        }
+      }
+      if (Object.keys(result).length > 0) {
+        setUrls(result);
+        return true;
+      }
+      return false;
+    };
+
+    if (tryExtract()) return;
+    // Retry after a short delay if textures aren't ready yet
+    const timer = setTimeout(tryExtract, 500);
+    return () => clearTimeout(timer);
+  }, [gameRef?.current]);
+
+  return urls;
 }
 
 export default function TowerShop({
@@ -14,16 +52,22 @@ export default function TowerShop({
   sellSelectedTower,
   upgradeSelectedTower,
   deselectTower,
+  cycleTargeting,
+  gameRef,
+  activeSynergies = [],
 }) {
+  const spriteUrls = useSpriteDataUrls(gameRef);
+
   return (
     <div className="td-shop">
       {!selectedTower ? (
         <>
-          <div className="td-shop-title">Deploy Memes</div>
+          <div className="td-shop-title">Deploy Punks</div>
           <div className="td-shop-grid">
             {SHOP_TOWERS.map((id) => {
               const tower = TOWER_TYPES[id];
               const canAfford = money >= tower.cost;
+              const spriteUrl = spriteUrls[id];
               return (
                 <button
                   key={id}
@@ -31,10 +75,14 @@ export default function TowerShop({
                   onClick={() => canAfford && selectTowerToPlace(id)}
                   title={tower.description}
                 >
-                  <div
-                    className="td-shop-icon"
-                    style={{ backgroundColor: colorToHex(tower.color) }}
-                  />
+                  {spriteUrl ? (
+                    <img src={spriteUrl} className="td-shop-sprite" alt={tower.name} />
+                  ) : (
+                    <div
+                      className="td-shop-icon"
+                      style={{ backgroundColor: colorToHex(tower.color) }}
+                    />
+                  )}
                   <div className="td-shop-info">
                     <div className="td-shop-name">{tower.name}</div>
                     <div className="td-shop-desc">{tower.description}</div>
@@ -55,25 +103,32 @@ export default function TowerShop({
           onSell={sellSelectedTower}
           onUpgrade={upgradeSelectedTower}
           onDeselect={deselectTower}
+          onCycleTargeting={cycleTargeting}
+          spriteUrls={spriteUrls}
         />
       )}
     </div>
   );
 }
 
-function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
+function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect, onCycleTargeting, spriteUrls }) {
   const towerDef = TOWER_TYPES[tower.id];
   if (!towerDef) return null;
 
   const upgrades = getAvailableUpgrades(tower, towerDef);
+  const spriteUrl = spriteUrls && spriteUrls[tower.id];
 
   return (
     <div className="td-tower-info">
       <div className="td-tower-info-header">
-        <div
-          className="td-shop-icon"
-          style={{ backgroundColor: colorToHex(towerDef.color) }}
-        />
+        {spriteUrl ? (
+          <img src={spriteUrl} className="td-shop-sprite" alt={towerDef.name} />
+        ) : (
+          <div
+            className="td-shop-icon"
+            style={{ backgroundColor: colorToHex(towerDef.color) }}
+          />
+        )}
         <div>
           <div className="td-tower-name">{towerDef.name}</div>
           <div className="td-tower-desc">{towerDef.description}</div>
@@ -83,6 +138,18 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
             {tower.stats.range >= 9999 && <span>RNG INF</span>}
             {tower.stats.fireRate > 0 && <span>SPD {(1000 / tower.stats.fireRate).toFixed(1)}/s</span>}
           </div>
+          {!tower.stats.isGenerator && (
+            <button
+              className="td-btn td-target-btn"
+              onClick={onCycleTargeting}
+              title="Cycle targeting mode (Tab)"
+            >
+              Target: {(tower.targetingMode || 'first').toUpperCase()}
+            </button>
+          )}
+          {tower.pops > 0 && (
+            <div className="td-tower-pops">Pops: {tower.pops}</div>
+          )}
         </div>
       </div>
 
@@ -120,6 +187,17 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
         })}
       </div>
 
+      {/* Synergy display */}
+      {tower._synergies && tower._synergies.length > 0 && (
+        <div className="td-synergy-list">
+          {tower._synergies.map((syn, i) => (
+            <div key={i} className="td-synergy-badge">
+              Synergy: {syn.name} — {syn.description}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="td-tower-actions">
         <button className="td-btn td-sell-btn" onClick={onSell}>
           Sell (${tower.sellValue})
@@ -135,22 +213,25 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect }) {
 function getAvailableUpgrades(tower, towerDef) {
   const upgrades = [];
   const paths = ['path1', 'path2', 'path3'];
+  const levels = paths.map(p => tower.upgradeLevels[p] || 0);
 
-  paths.forEach((path) => {
+  paths.forEach((path, idx) => {
     const currentTier = tower.upgradeLevels[path] || 0;
     const pathUpgrades = towerDef.upgrades[path];
 
     if (currentTier < pathUpgrades.length) {
       const nextUpgrade = pathUpgrades[currentTier];
-      const otherPathHasTier3 = paths.some(
-        (p) => p !== path && (tower.upgradeLevels[p] || 0) >= 3
-      );
-      if (currentTier === 2 && otherPathHasTier3) return;
-      if (currentTier >= 1 && otherPathHasTier3) return;
+      const wouldBe = currentTier + 1;
+
+      // BTD6-style: [any, <=2, <=0]
+      const hypothetical = [...levels];
+      hypothetical[idx] = wouldBe;
+      hypothetical.sort((a, b) => b - a);
+      if (hypothetical[1] > 2 || hypothetical[2] > 0) return;
 
       upgrades.push({
         path,
-        tier: currentTier + 1,
+        tier: wouldBe,
         name: nextUpgrade.name,
         cost: nextUpgrade.cost,
       });

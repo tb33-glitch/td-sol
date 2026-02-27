@@ -45,8 +45,23 @@ export default class CollisionSystem {
   }
 
   handleHit(proj, bloon) {
-    // Check immunity
-    if (bloon.bloonData.immunities.includes(proj.damageType) && proj.damageType !== 'normal' && proj.damageType !== 'magic') {
+    // Boss shield check
+    if (bloon.isBossShielded && bloon.isBossShielded()) {
+      return; // boss is shielded, no damage
+    }
+
+    // Boss Rug Pull: immune to abilities (check source)
+    if (bloon.bloonData.abilityImmune && proj._isAbilityProj) {
+      return;
+    }
+
+    // Disabled tower check — disabled towers can't deal damage
+    if (proj.sourceTower && proj.sourceTower._disabled) {
+      return;
+    }
+
+    // Check immunity — normal bypasses all, magic bypasses sharp only
+    if (this.isImmune(proj.damageType, bloon)) {
       return; // immune, no damage
     }
 
@@ -76,8 +91,24 @@ export default class CollisionSystem {
     }
 
     if (bloon.hp <= 0) {
+      // Credit pop to source tower
+      if (proj.sourceTower && proj.sourceTower.pops !== undefined) {
+        proj.sourceTower.pops++;
+      }
       this.scene.popBloon(bloon);
     }
+  }
+
+  isImmune(damageType, bloon) {
+    const immunities = bloon.bloonData.immunities;
+    if (!immunities || immunities.length === 0) return false;
+    // 'normal' damage bypasses all immunities
+    if (damageType === 'normal') return false;
+    // 'magic' bypasses 'sharp' immunity (lead) but NOT explosive/cold (black/white)
+    if (damageType === 'magic') {
+      return immunities.some(i => i !== 'sharp' && i !== 'detection' && immunities.includes(damageType));
+    }
+    return immunities.includes(damageType);
   }
 
   applySplash(proj, hitBloon) {
@@ -91,14 +122,21 @@ export default class CollisionSystem {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist <= proj.splashRadius) {
-        if (bloon.bloonData.immunities.includes(proj.damageType) && proj.damageType !== 'normal' && proj.damageType !== 'magic') {
+        if (this.isImmune(proj.damageType, bloon)) {
           continue;
         }
-        bloon.hp -= proj.damage || 1;
+        let dmg = proj.damage || 1;
+        if (bloon.bloonData.isMoab && proj.moabDamageMult) {
+          dmg *= proj.moabDamageMult;
+        }
+        bloon.hp -= dmg;
         if (proj.stunDuration) {
           bloon.applyStun(proj.stunDuration);
         }
         if (bloon.hp <= 0) {
+          if (proj.sourceTower && proj.sourceTower.pops !== undefined) {
+            proj.sourceTower.pops++;
+          }
           this.scene.popBloon(bloon);
         }
       }

@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 import { createGameConfig } from '../game/config';
 import eventBus from '../game/GameEventBus';
 
-export default function useBloonsTD(mapId = 'meadow') {
+export default function useBloonsTD(mapId = 'meadow', difficulty = 'medium', options = {}) {
   const gameRef = useRef(null);
   const containerRef = useRef(null);
   const [lives, setLives] = useState(100);
@@ -15,16 +15,25 @@ export default function useBloonsTD(mapId = 'meadow') {
   const [selectedTower, setSelectedTower] = useState(null);
   const [isPaused, setIsPaused] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [pitLoading, setPitLoading] = useState(false);
+  const [pitTokenCount, setPitTokenCount] = useState(0);
+  const [abilities, setAbilities] = useState([]);
+  const [wavePreview, setWavePreview] = useState(null);
+  const [heroLevel, setHeroLevel] = useState(0);
+  const [heroXP, setHeroXP] = useState(0);
+  const [activeSynergies, setActiveSynergies] = useState([]);
+  const [activeEvent, setActiveEvent] = useState(null);
+  const [bossHP, setBossHP] = useState(null);
 
   // Initialize Phaser game
   const initGame = useCallback((container) => {
     if (gameRef.current) return;
     containerRef.current = container;
 
-    const config = createGameConfig(container, mapId);
+    const config = createGameConfig(container, mapId, difficulty, options);
     gameRef.current = new Phaser.Game(config);
     setGameStarted(true);
-  }, [mapId]);
+  }, [mapId, difficulty, options]);
 
   // Subscribe to game events
   useEffect(() => {
@@ -56,6 +65,8 @@ export default function useBloonsTD(mapId = 'meadow') {
           upgradeLevels: { ...tower.upgradeLevels },
           sellValue: tower.getSellValue(),
           totalSpent: tower.totalSpent,
+          targetingMode: tower.targetingMode || 'first',
+          pops: tower.pops || 0,
           _ref: tower, // keep reference for actions
         });
         tower.showRange();
@@ -64,6 +75,18 @@ export default function useBloonsTD(mapId = 'meadow') {
       eventBus.on('towerUpgraded', () => {
         // Refresh selected tower data
       }),
+      eventBus.on('abilitiesChanged', (abs) => setAbilities(abs)),
+      eventBus.on('wavePreview', (data) => setWavePreview(data)),
+      eventBus.on('pitLoadingStart', () => setPitLoading(true)),
+      eventBus.on('pitLoadingEnd', ({ count }) => {
+        setPitLoading(false);
+        setPitTokenCount(count);
+      }),
+      eventBus.on('heroLevelUp', ({ level }) => setHeroLevel(level)),
+      eventBus.on('synergiesChanged', (synergies) => setActiveSynergies(synergies)),
+      eventBus.on('marketEvent', (evt) => setActiveEvent(evt)),
+      eventBus.on('marketEventEnd', () => setActiveEvent(null)),
+      eventBus.on('bossHP', (data) => setBossHP(data)),
     ];
 
     return () => unsubs.forEach(u => u());
@@ -100,6 +123,18 @@ export default function useBloonsTD(mapId = 'meadow') {
     }
   }, [selectedTower]);
 
+  const cycleTargeting = useCallback(() => {
+    eventBus.emit('cycleTargeting');
+  }, []);
+
+  const activateAbility = useCallback((towerRef) => {
+    eventBus.emit('activateAbility', towerRef);
+  }, []);
+
+  const mergeParagon = useCallback((towerId) => {
+    eventBus.emit('mergeParagon', towerId);
+  }, []);
+
   return {
     // Refs
     initGame,
@@ -114,6 +149,8 @@ export default function useBloonsTD(mapId = 'meadow') {
     selectedTower,
     isPaused,
     gameStarted,
+    pitLoading,
+    pitTokenCount,
     // Actions
     startWave,
     toggleSpeed,
@@ -123,5 +160,15 @@ export default function useBloonsTD(mapId = 'meadow') {
     deselectTower,
     sellSelectedTower,
     upgradeSelectedTower,
+    cycleTargeting,
+    abilities,
+    activateAbility,
+    wavePreview,
+    heroLevel,
+    heroXP,
+    activeSynergies,
+    activeEvent,
+    bossHP,
+    mergeParagon,
   };
 }
