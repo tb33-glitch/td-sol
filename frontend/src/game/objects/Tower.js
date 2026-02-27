@@ -104,10 +104,19 @@ export default class Tower extends Phaser.GameObjects.Container {
   showRange() {
     this.rangeCircle.clear();
     if (this.stats.range > 0 && this.stats.range < 9999) {
-      this.rangeCircle.lineStyle(2, 0xffffff, 0.4);
-      this.rangeCircle.strokeCircle(0, 0, this.stats.range);
-      this.rangeCircle.fillStyle(0xffffff, 0.08);
-      this.rangeCircle.fillCircle(0, 0, this.stats.range);
+      // Dashed circle (24 arc segments)
+      const r = this.stats.range;
+      const segments = 24;
+      this.rangeCircle.lineStyle(1.5, 0xffffff, 0.4);
+      for (let i = 0; i < segments; i += 2) {
+        const startAngle = (i / segments) * Math.PI * 2;
+        const endAngle = ((i + 1) / segments) * Math.PI * 2;
+        this.rangeCircle.beginPath();
+        this.rangeCircle.arc(0, 0, r, startAngle, endAngle, false);
+        this.rangeCircle.strokePath();
+      }
+      this.rangeCircle.fillStyle(0xffffff, 0.06);
+      this.rangeCircle.fillCircle(0, 0, r);
     }
     this.rangeCircle.setVisible(true);
     this.selected = true;
@@ -126,6 +135,18 @@ export default class Tower extends Phaser.GameObjects.Container {
       this.updateGenerator(time, delta);
       // Supply drop income (for snipers with supply drop upgrade)
       return;
+    }
+
+    // Smooth rotation toward target
+    if (this.targetBloon && this.targetBloon.active && this.sprite) {
+      const dx = this.targetBloon.x - this.x;
+      const dy = this.targetBloon.y - this.y;
+      const targetAngle = Math.atan2(dy, dx);
+      // Lerp rotation
+      let diff = targetAngle - this.sprite.rotation;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      this.sprite.rotation += diff * Math.min(1, 0.15 * (delta / 16.67));
     }
 
     // Supply drop income timer
@@ -240,6 +261,26 @@ export default class Tower extends Phaser.GameObjects.Container {
   fire(time) {
     this.lastFireTime = time;
     const shots = this.stats.multishot || 1;
+
+    // Recoil pulse
+    if (this.sprite) {
+      this.scene.tweens.add({
+        targets: this.sprite,
+        scaleX: 1.15,
+        scaleY: 0.9,
+        duration: 60,
+        yoyo: true,
+        ease: 'Quad.easeOut',
+      });
+    }
+
+    // Muzzle flash
+    if (this.targetBloon && this.scene.vfx) {
+      const dx = this.targetBloon.x - this.x;
+      const dy = this.targetBloon.y - this.y;
+      const angle = Math.atan2(dy, dx);
+      this.scene.vfx.muzzleFlash(this.x, this.y, angle, this.stats.projectileColor || 0xffff88);
+    }
 
     for (let i = 0; i < shots; i++) {
       const angle = shots > 1

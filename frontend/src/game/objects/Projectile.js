@@ -26,6 +26,13 @@ export default class Projectile extends Phaser.GameObjects.Container {
     this.hasReturned = false;
     this.sourceTower = stats._sourceTower || null;
 
+    // Trail system
+    this._trailColor = stats.projectileColor || 0xffffff;
+    this._trail = []; // { x, y, age }
+    this._trailInterval = 30; // ms between trail dots
+    this._trailTimer = 0;
+    this._trailGfx = null;
+
     // Sprite — use texture if available, fallback to graphics
     const textureKey = stats.projTextureKey;
     if (textureKey && scene.textures.exists(textureKey)) {
@@ -109,6 +116,36 @@ export default class Projectile extends Phaser.GameObjects.Container {
     this.x += this.vx * (delta / 16.67);
     this.y += this.vy * (delta / 16.67);
 
+    // Trail — drop trail dots at intervals
+    if (!this.isInstant && (this.vx !== 0 || this.vy !== 0)) {
+      this._trailTimer += delta;
+      if (this._trailTimer >= this._trailInterval) {
+        this._trailTimer = 0;
+        this._trail.push({ x: this.x, y: this.y, age: 0 });
+        if (this._trail.length > 4) this._trail.shift();
+      }
+      // Age and draw trail
+      if (this._trail.length > 0) {
+        if (!this._trailGfx) {
+          this._trailGfx = this.scene.add.graphics();
+          this._trailGfx.setDepth(14);
+        }
+        this._trailGfx.clear();
+        for (let i = this._trail.length - 1; i >= 0; i--) {
+          const t = this._trail[i];
+          t.age += delta;
+          if (t.age > 150) {
+            this._trail.splice(i, 1);
+            continue;
+          }
+          const fade = 1 - (t.age / 150);
+          const size = this.radius * fade * 0.6;
+          this._trailGfx.fillStyle(this._trailColor, fade * 0.35);
+          this._trailGfx.fillCircle(t.x, t.y, Math.max(size, 0.5));
+        }
+      }
+    }
+
     const { width, height } = this.scene.scale;
     if (this.x < -20 || this.x > width + 20 || this.y < -20 || this.y > height + 20) {
       this.active = false;
@@ -118,6 +155,7 @@ export default class Projectile extends Phaser.GameObjects.Container {
   destroy() {
     if (this.graphics) this.graphics.destroy();
     if (this.sprite) this.sprite.destroy();
+    if (this._trailGfx) this._trailGfx.destroy();
     super.destroy();
   }
 }

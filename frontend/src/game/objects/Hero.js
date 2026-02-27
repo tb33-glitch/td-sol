@@ -245,6 +245,26 @@ export default class Hero extends Phaser.GameObjects.Container {
     this.lastFireTime = time;
     const shots = this.stats.multishot || 1;
 
+    // Recoil pulse
+    if (this.sprite) {
+      this.scene.tweens.add({
+        targets: this.sprite,
+        scaleX: 1.15,
+        scaleY: 0.9,
+        duration: 60,
+        yoyo: true,
+        ease: 'Quad.easeOut',
+      });
+    }
+
+    // Muzzle flash
+    if (this.targetBloon && this.scene.vfx) {
+      const dx = this.targetBloon.x - this.x;
+      const dy = this.targetBloon.y - this.y;
+      const angle = Math.atan2(dy, dx);
+      this.scene.vfx.muzzleFlash(this.x, this.y, angle, 0xffcc00);
+    }
+
     for (let i = 0; i < shots; i++) {
       const angle = shots > 1
         ? (i / (shots - 1) - 0.5) * 0.4
@@ -280,6 +300,17 @@ export default class Hero extends Phaser.GameObjects.Container {
     } else {
       this._diamondHandsActive = false;
       this.targetBloon = this.findTarget();
+    }
+
+    // Smooth rotation toward target
+    if (this.targetBloon && this.targetBloon.active && this.sprite) {
+      const dx = this.targetBloon.x - this.x;
+      const dy = this.targetBloon.y - this.y;
+      const targetAngle = Math.atan2(dy, dx);
+      let diff = targetAngle - this.sprite.rotation;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      this.sprite.rotation += diff * Math.min(1, 0.15 * (delta / 16.67));
     }
 
     // Fire if ready

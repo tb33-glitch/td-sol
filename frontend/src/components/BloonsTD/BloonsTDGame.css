@@ -835,3 +835,56 @@
   color: #aaa;
   text-transform: uppercase;
 }
+
+/* ===== Money Pulse Animation ===== */
+@keyframes moneyPulse {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.2); filter: brightness(1.5); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+.td-money-pulse {
+  animation: moneyPulse 0.35s ease-out;
+}
+
+/* ===== Lives Lost Shake ===== */
+@keyframes livesShake {
+  0% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  30% { transform: translateX(4px); }
+  45% { transform: translateX(-3px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-1px); }
+  100% { transform: translateX(0); }
+}
+
+.td-lives-shake {
+  animation: livesShake 0.4s ease-out;
+}
+
+.td-lives-shake .td-stat-icon {
+  filter: drop-shadow(0 0 8px rgba(255, 68, 102, 0.8)) brightness(1.5);
+}
+
+/* ===== Upgrade Pip Indicators ===== */
+.td-upgrade-pips {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.td-pip {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1a1a3e;
+  border: 1px solid #333;
+}
+
+.td-pip-filled {
+  background: #44ff88;
+  border-color: #44ff88;
+  box-shadow: 0 0 4px rgba(68, 255, 136, 0.4);
+}

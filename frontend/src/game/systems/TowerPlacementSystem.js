@@ -89,16 +89,49 @@ export default class TowerPlacementSystem {
 
     // Draw placement circle
     this.previewGraphics.clear();
-    this.previewGraphics.lineStyle(2, this.isValid ? 0x44ff44 : 0xff0000, 0.6);
-    this.previewGraphics.strokeCircle(x, y, towerData.radius + 2);
+    if (this.isValid) {
+      // Dashed green circle
+      const r = towerData.radius + 2;
+      const segments = 16;
+      this.previewGraphics.lineStyle(2, 0x44ff44, 0.6);
+      for (let i = 0; i < segments; i += 2) {
+        const startAngle = (i / segments) * Math.PI * 2;
+        const endAngle = ((i + 1) / segments) * Math.PI * 2;
+        this.previewGraphics.beginPath();
+        this.previewGraphics.arc(x, y, r, startAngle, endAngle, false);
+        this.previewGraphics.strokePath();
+      }
+    } else {
+      // Red X for invalid
+      this.previewGraphics.lineStyle(2, 0xff0000, 0.7);
+      this.previewGraphics.strokeCircle(x, y, towerData.radius + 2);
+      const s = towerData.radius * 0.6;
+      this.previewGraphics.beginPath();
+      this.previewGraphics.moveTo(x - s, y - s);
+      this.previewGraphics.lineTo(x + s, y + s);
+      this.previewGraphics.strokePath();
+      this.previewGraphics.beginPath();
+      this.previewGraphics.moveTo(x + s, y - s);
+      this.previewGraphics.lineTo(x - s, y + s);
+      this.previewGraphics.strokePath();
+    }
 
-    // Draw range preview
+    // Draw range preview (dashed)
     this.rangeGraphics.clear();
     if (towerData.range > 0 && towerData.range < 9999) {
-      this.rangeGraphics.lineStyle(1, 0xffffff, 0.3);
-      this.rangeGraphics.strokeCircle(x, y, towerData.range);
-      this.rangeGraphics.fillStyle(0xffffff, 0.05);
-      this.rangeGraphics.fillCircle(x, y, towerData.range);
+      const r = towerData.range;
+      const segments = 24;
+      const rangeColor = this.isValid ? 0xffffff : 0xff4444;
+      this.rangeGraphics.lineStyle(1, rangeColor, 0.25);
+      for (let i = 0; i < segments; i += 2) {
+        const startAngle = (i / segments) * Math.PI * 2;
+        const endAngle = ((i + 1) / segments) * Math.PI * 2;
+        this.rangeGraphics.beginPath();
+        this.rangeGraphics.arc(x, y, r, startAngle, endAngle, false);
+        this.rangeGraphics.strokePath();
+      }
+      this.rangeGraphics.fillStyle(rangeColor, 0.04);
+      this.rangeGraphics.fillCircle(x, y, r);
     }
   }
 

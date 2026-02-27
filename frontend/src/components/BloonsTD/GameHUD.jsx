@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import './BloonsTDGame.css';
 
 export default function GameHUD({
@@ -18,14 +19,39 @@ export default function GameHUD({
   activeEvent,
   bossHP,
 }) {
+  const moneyRef = useRef(null);
+  const livesRef = useRef(null);
+  const prevMoney = useRef(money);
+  const prevLives = useRef(lives);
+
+  // Flash money on change
+  useEffect(() => {
+    if (money !== prevMoney.current && moneyRef.current) {
+      moneyRef.current.classList.remove('td-money-pulse');
+      void moneyRef.current.offsetWidth;
+      moneyRef.current.classList.add('td-money-pulse');
+    }
+    prevMoney.current = money;
+  }, [money]);
+
+  // Shake lives on loss
+  useEffect(() => {
+    if (lives < prevLives.current && livesRef.current) {
+      livesRef.current.classList.remove('td-lives-shake');
+      void livesRef.current.offsetWidth;
+      livesRef.current.classList.add('td-lives-shake');
+    }
+    prevLives.current = lives;
+  }, [lives]);
+
   return (
     <div className="td-hud">
       <div className="td-hud-left">
-        <div className="td-stat td-lives">
+        <div className="td-stat td-lives" ref={livesRef}>
           <span className="td-stat-icon">&#9829;</span>
           <span className="td-stat-value">{lives}</span>
         </div>
-        <div className="td-stat td-money">
+        <div className="td-stat td-money" ref={moneyRef}>
           <span className="td-stat-icon">$</span>
           <span className="td-stat-value">{money}</span>
         </div>

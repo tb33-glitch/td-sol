@@ -17,6 +17,7 @@ import { BLOON_TYPES, POP_CASH, createDynamicBloonTypes } from '../data/bloonDat
 import { CHALLENGES } from '../data/challengeData';
 import { STARTING_LIVES, DIFFICULTIES } from '../data/waveData';
 import { MAPS } from '../data/mapData';
+import VFXSystem from '../systems/VFXSystem';
 import PopTracker from '../systems/PopTracker';
 import eventBus from '../GameEventBus';
 
@@ -67,6 +68,7 @@ export default class GameScene extends Phaser.Scene {
     this.synergySystem = new SynergySystem(this);
     this.marketEventSystem = new MarketEventSystem(this);
     this.popTracker = new PopTracker();
+    this.vfx = new VFXSystem(this);
 
     // Event modifiers (set by MarketEventSystem)
     this._eventSpeedMult = 1;
@@ -192,9 +194,72 @@ export default class GameScene extends Phaser.Scene {
     bg.fillRect(0, 0, width, height);
     bg.setDepth(0);
 
-    // Path
+    // Subtle grid overlay (circuit-board feel)
+    const gridGfx = this.add.graphics();
+    gridGfx.setDepth(1);
+    const gridSize = 40;
+    const gridColor = map.gridColor || 0x224466;
+    const gridAlpha = map.gridAlpha || 0.06;
+    gridGfx.lineStyle(1, gridColor, gridAlpha);
+    for (let x = 0; x <= width; x += gridSize) {
+      gridGfx.beginPath();
+      gridGfx.moveTo(x, 0);
+      gridGfx.lineTo(x, height);
+      gridGfx.strokePath();
+    }
+    for (let y = 0; y <= height; y += gridSize) {
+      gridGfx.beginPath();
+      gridGfx.moveTo(0, y);
+      gridGfx.lineTo(width, y);
+      gridGfx.strokePath();
+    }
+    // Corner hash marks at some grid intersections
+    const accent = map.accentColor || 0x44ff88;
+    gridGfx.lineStyle(1, accent, 0.08);
+    for (let x = gridSize; x < width; x += gridSize * 2) {
+      for (let y = gridSize; y < height; y += gridSize * 2) {
+        const s = 3;
+        gridGfx.beginPath();
+        gridGfx.moveTo(x - s, y); gridGfx.lineTo(x + s, y);
+        gridGfx.strokePath();
+        gridGfx.beginPath();
+        gridGfx.moveTo(x, y - s); gridGfx.lineTo(x, y + s);
+        gridGfx.strokePath();
+      }
+    }
+
+    // Decorations: circuit trace lines + node dots scattered near path
+    const decoGfx = this.add.graphics();
+    decoGfx.setDepth(1);
+    const wp = this.pathSystem.scaledWaypoints;
+    const rng = (seed) => {
+      let s = seed;
+      return () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; };
+    };
+    const rand = rng(mapId.length * 7919);
+    for (let i = 0; i < wp.length - 1; i++) {
+      const mx = (wp[i].x + wp[i + 1].x) / 2;
+      const my = (wp[i].y + wp[i + 1].y) / 2;
+      // Small trace lines branching off path
+      for (let j = 0; j < 3; j++) {
+        const ox = (rand() - 0.5) * 80;
+        const oy = (rand() - 0.5) * 80;
+        const len = 15 + rand() * 25;
+        const angle = rand() * Math.PI * 2;
+        decoGfx.lineStyle(1, accent, 0.06);
+        decoGfx.beginPath();
+        decoGfx.moveTo(mx + ox, my + oy);
+        decoGfx.lineTo(mx + ox + Math.cos(angle) * len, my + oy + Math.sin(angle) * len);
+        decoGfx.strokePath();
+        // Node dot at end
+        decoGfx.fillStyle(accent, 0.1);
+        decoGfx.fillCircle(mx + ox + Math.cos(angle) * len, my + oy + Math.sin(angle) * len, 2);
+      }
+    }
+
+    // Path (on top of grid)
     const pathGfx = this.add.graphics();
-    pathGfx.setDepth(1);
+    pathGfx.setDepth(3);
     this.pathSystem.drawPath(pathGfx);
   }
 
@@ -221,6 +286,7 @@ export default class GameScene extends Phaser.Scene {
 
     const tower = new Tower(this, x, y, towerId);
     this.towers.push(tower);
+    this.vfx.placementSlam(x, y);
     eventBus.emit('towerPlaced', { towerId, x, y, count: this.towers.length });
     this.synergySystem.checkSynergies();
   }
@@ -236,6 +302,8 @@ export default class GameScene extends Phaser.Scene {
     // Challenge: HODL — can't sell
     if (this.challengeRules && this.challengeRules.canSell === false) return;
     const value = this.economySystem.getSellValue(tower);
+    const tx = tower.x;
+    const ty = tower.y;
     this.economySystem.addCash(value);
 
     const idx = this.towers.indexOf(tower);
@@ -244,6 +312,9 @@ export default class GameScene extends Phaser.Scene {
     this.abilitySystem.unregisterTower(tower);
     tower.hideRange();
     tower.destroy();
+
+    // Sell explosion VFX
+    this.vfx.sellExplosion(tx, ty, value);
 
     this.deselectTower();
     eventBus.emit('towerSold', { value });
@@ -272,6 +343,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.economySystem.spendCash(upgrade.cost);
     this.upgradeSystem.applyUpgrade(tower, path, tier);
+    this.vfx.upgradeSparkle(tower.x, tower.y);
     eventBus.emit('towerUpgraded', { tower, path, tier });
 
     // Refresh selected tower info
@@ -323,6 +395,12 @@ export default class GameScene extends Phaser.Scene {
     }
 
     this.bloons.push(bloon);
+
+    // Boss entrance VFX
+    if (bloon.isBoss) {
+      this.vfx.bossEntrance(bloon.bloonData.name);
+    }
+
     return bloon;
   }
 
@@ -372,67 +450,37 @@ export default class GameScene extends Phaser.Scene {
       });
     }
 
-    // Pop effect
-    this.createPopEffect(bloon.x, bloon.y, bloon.bloonData.color);
+    // Pop effect — scaled by bloon type
+    const popCount = bloon.isBoss ? 24 : bloon.isMoab ? 16 : 8;
+    this.vfx.popBurst(bloon.x, bloon.y, bloon.bloonData.color, popCount);
+
+    // Screen shake on MOAB/boss pops
+    if (bloon.isBoss) {
+      this.vfx.screenShake(6, 350);
+    } else if (bloon.isMoab) {
+      this.vfx.screenShake(3, 200);
+    }
 
     // Floating cash text
-    this.createFloatingText(bloon.x, bloon.y - 10, `+$${POP_CASH}`, '#44ff44');
+    this.vfx.floatingText(bloon.x, bloon.y - 10, `+$${POP_CASH}`, '#44ff44');
 
     bloon.pop();
   }
 
-  createPopEffect(x, y, color) {
-    const particles = this.add.graphics();
-    particles.setDepth(25);
-
-    // Burst of 8 color-matched particles with size variation
-    const count = 8;
-    for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
-      const dist = 2 + Math.random() * 4;
-      const px = x + Math.cos(angle) * dist;
-      const py = y + Math.sin(angle) * dist;
-      const size = 1.5 + Math.random() * 2.5;
-      particles.fillStyle(color, 0.6 + Math.random() * 0.4);
-      particles.fillCircle(px, py, size);
-    }
-
-    // Fade out and remove
-    this.tweens.add({
-      targets: particles,
-      alpha: 0,
-      scaleX: 2,
-      scaleY: 2,
-      duration: 250,
-      onComplete: () => particles.destroy(),
-    });
+  createPopEffect(x, y, color, count = 8) {
+    this.vfx.popBurst(x, y, color, count);
   }
 
   createFloatingText(x, y, text, color) {
-    const floatText = this.add.text(x, y, text, {
-      fontSize: '10px',
-      fontFamily: 'monospace',
-      color: color,
-      stroke: '#000000',
-      strokeThickness: 2,
-    });
-    floatText.setOrigin(0.5, 0.5);
-    floatText.setDepth(30);
-
-    this.tweens.add({
-      targets: floatText,
-      y: y - 20,
-      alpha: 0,
-      duration: 600,
-      ease: 'Power2',
-      onComplete: () => floatText.destroy(),
-    });
+    this.vfx.floatingText(x, y, text, color);
   }
 
   loseLife(amount) {
     this.lives -= amount;
     if (this.lives < 0) this.lives = 0;
+    this.vfx.lifeLostFlash();
     eventBus.emit('livesChanged', this.lives);
+    eventBus.emit('livesLost');
 
     if (this.lives <= 0 && !this.gameOver) {
       this.triggerGameOver(false);
@@ -553,6 +601,16 @@ export default class GameScene extends Phaser.Scene {
     // Collision detection
     this.collisionSystem.update();
 
+    // VFX system
+    this.vfx.update(delta);
+
+    // Synergy visual links
+    if (this.synergySystem.activeSynergies.length > 0) {
+      this.vfx.drawSynergyLinks(this.synergySystem.activeSynergies, this.gameTime);
+    } else if (this.vfx._synergyGfx) {
+      this.vfx._synergyGfx.clear();
+    }
+
     // Ability cooldowns
     this.abilitySystem.update(delta);
 
@@ -567,6 +625,7 @@ export default class GameScene extends Phaser.Scene {
     this.eventUnsubs.forEach(unsub => unsub());
     this.towerPlacementSystem.destroy();
     this.waveSystem.cleanup();
+    this.vfx.destroy();
 
     // Destroy game objects
     this.towers.forEach(t => t.destroy());

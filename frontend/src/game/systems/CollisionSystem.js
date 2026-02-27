@@ -75,6 +75,25 @@ export default class CollisionSystem {
 
     bloon.hp -= damage;
 
+    // Impact flash VFX (color-matched to damage type)
+    if (this.scene.vfx) {
+      const impactColor = this.getDamageColor(proj.damageType);
+      this.scene.vfx.impactFlash(bloon.x, bloon.y, impactColor, 6);
+
+      // Floating damage numbers on high-HP targets
+      if (bloon.isBoss || bloon.isMoab || bloon.isCeramic) {
+        const dmgColor = damage >= 5 ? '#ff4466' : '#ffaa33';
+        const fontSize = damage >= 10 ? '12px' : '9px';
+        this.scene.vfx.floatingText(
+          bloon.x + (Math.random() - 0.5) * 12,
+          bloon.y - bloon.displayRadius - 4,
+          `-${Math.round(damage)}`,
+          dmgColor,
+          fontSize
+        );
+      }
+    }
+
     // Apply stun
     if (proj.stunDuration) {
       bloon.applyStun(proj.stunDuration);
@@ -88,6 +107,11 @@ export default class CollisionSystem {
     // Splash damage
     if (proj.splashRadius && proj.splashRadius > 0) {
       this.applySplash(proj, bloon);
+      // Splash ring VFX
+      if (this.scene.vfx) {
+        const splashColor = this.getDamageColor(proj.damageType);
+        this.scene.vfx.splashRing(bloon.x, bloon.y, proj.splashRadius, splashColor);
+      }
     }
 
     if (bloon.hp <= 0) {
@@ -109,6 +133,17 @@ export default class CollisionSystem {
       return immunities.some(i => i !== 'sharp' && i !== 'detection' && immunities.includes(damageType));
     }
     return immunities.includes(damageType);
+  }
+
+  getDamageColor(damageType) {
+    switch (damageType) {
+      case 'explosive': return 0xff8844;
+      case 'cold': return 0x88bbff;
+      case 'magic': return 0xaa44ff;
+      case 'sharp': return 0xcccccc;
+      case 'normal':
+      default: return 0xffffff;
+    }
   }
 
   applySplash(proj, hitBloon) {

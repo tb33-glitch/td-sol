@@ -38,6 +38,11 @@ export default class WaveSystem {
       total: this.totalWaves,
     });
 
+    // Wave banner VFX
+    if (this.scene.vfx) {
+      this.scene.vfx.waveBanner(this.currentWave + 1);
+    }
+
     // Notify market event system
     if (this.scene.marketEventSystem) {
       this.scene.marketEventSystem.onWaveStart(this.currentWave + 1);

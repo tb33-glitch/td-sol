@@ -163,6 +163,10 @@ export default class Bloon extends Phaser.GameObjects.Container {
   drawFortifiedOutline() {
     if (!this.fortifiedGfx) return;
     this.fortifiedGfx.clear();
+    // Outer glow
+    this.fortifiedGfx.lineStyle(4, 0xffcc00, 0.25);
+    this.fortifiedGfx.strokeCircle(0, 0, this.displayRadius + 5);
+    // Inner gold outline
     this.fortifiedGfx.lineStyle(2, 0xffcc00, 0.9);
     this.fortifiedGfx.strokeCircle(0, 0, this.displayRadius + 2);
   }
@@ -186,12 +190,21 @@ export default class Bloon extends Phaser.GameObjects.Container {
   update(delta) {
     if (!this.active) return;
 
+    // Status particle timers
+    if (!this._statusParticleTimer) this._statusParticleTimer = 0;
+    this._statusParticleTimer += delta;
+
     // Stun
     if (this.stunTimer > 0) {
       this.stunTimer -= delta;
       this.currentSpeed = 0;
       // Visual: yellow tint while stunned
       if (this.sprite) this.sprite.setTint(0xffff00);
+      // Stun particles every 300ms
+      if (this._statusParticleTimer >= 300 && this.scene.vfx) {
+        this._statusParticleTimer = 0;
+        this.scene.vfx.statusParticles(this.x, this.y, 'stun');
+      }
       return;
     }
 
@@ -201,10 +214,14 @@ export default class Bloon extends Phaser.GameObjects.Container {
       this.currentSpeed = this.baseSpeed * this.slowAmount;
       // Visual: blue tint while slowed
       if (this.sprite) this.sprite.setTint(0x88bbff);
+      // Slow particles every 400ms
+      if (this._statusParticleTimer >= 400 && this.scene.vfx) {
+        this._statusParticleTimer = 0;
+        this.scene.vfx.statusParticles(this.x, this.y, 'slow');
+      }
     } else {
       this.slowAmount = 1;
       this.currentSpeed = this.baseSpeed;
-      // Clear tint (regrow tint handled in Phase 2)
       if (this.sprite && !this.isRegrow) this.sprite.clearTint();
       else if (this.sprite && this.isRegrow) this.sprite.setTint(0x88ff88);
     }
@@ -212,6 +229,13 @@ export default class Bloon extends Phaser.GameObjects.Container {
     // Regrow — grow back toward original type
     if (this.isRegrow && this.typeId !== this.originalType) {
       this.regrowTimer += delta;
+      // Regrow sparkle particles every 500ms
+      if (!this._regrowParticleTimer) this._regrowParticleTimer = 0;
+      this._regrowParticleTimer += delta;
+      if (this._regrowParticleTimer >= 500 && this.scene.vfx) {
+        this._regrowParticleTimer = 0;
+        this.scene.vfx.statusParticles(this.x, this.y, 'regrow');
+      }
       if (this.regrowTimer >= this.regrowInterval) {
         this.regrowTimer = 0;
         const parentType = PARENT_MAP[this.typeId];
@@ -392,7 +416,22 @@ export default class Bloon extends Phaser.GameObjects.Container {
 
   pop() {
     this.active = false;
-    this.destroy();
+
+    // Death animation: shrink + spin, then destroy
+    const target = this.sprite || this.graphics;
+    if (target && this.scene) {
+      this.scene.tweens.add({
+        targets: this,
+        scaleX: 0,
+        scaleY: 0,
+        angle: 360,
+        duration: 150,
+        ease: 'Power2',
+        onComplete: () => this.destroy(),
+      });
+    } else {
+      this.destroy();
+    }
   }
 
   destroy() {

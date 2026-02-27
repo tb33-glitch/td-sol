@@ -161,7 +161,14 @@ function TowerInfo({ tower, money, onSell, onUpgrade, onDeselect, onCycleTargeti
 
           return (
             <div key={path} className="td-upgrade-path">
-              <div className="td-upgrade-path-label">Path {idx + 1}</div>
+              <div className="td-upgrade-path-label">
+                Path {idx + 1}
+                <span className="td-upgrade-pips">
+                  {pathUpgrades.map((_, t) => (
+                    <span key={t} className={`td-pip ${currentTier > t ? 'td-pip-filled' : ''}`} />
+                  ))}
+                </span>
+              </div>
               <div className="td-upgrade-tiers">
                 {pathUpgrades.map((upgrade, tier) => {
                   const isOwned = currentTier > tier;

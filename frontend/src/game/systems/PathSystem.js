@@ -32,7 +32,28 @@ export default class PathSystem {
   drawPath(graphics) {
     const wp = this.scaledWaypoints;
     const pw = this.map.pathWidth;
+    const glowColor = this.map.pathGlowColor || this.map.pathColor;
+    const dashColor = this.map.pathDashColor || 0x888888;
 
+    // Layer 1: Outer glow
+    graphics.lineStyle(pw + 12, glowColor, 0.15);
+    graphics.beginPath();
+    graphics.moveTo(wp[0].x, wp[0].y);
+    for (let i = 1; i < wp.length; i++) {
+      graphics.lineTo(wp[i].x, wp[i].y);
+    }
+    graphics.strokePath();
+
+    // Layer 2: Border
+    graphics.lineStyle(pw + 4, this.map.pathColor, 0.5);
+    graphics.beginPath();
+    graphics.moveTo(wp[0].x, wp[0].y);
+    for (let i = 1; i < wp.length; i++) {
+      graphics.lineTo(wp[i].x, wp[i].y);
+    }
+    graphics.strokePath();
+
+    // Layer 3: Main path
     graphics.lineStyle(pw, this.map.pathColor, 1);
     graphics.beginPath();
     graphics.moveTo(wp[0].x, wp[0].y);
@@ -41,14 +62,37 @@ export default class PathSystem {
     }
     graphics.strokePath();
 
-    // Draw path border
-    graphics.lineStyle(pw + 4, this.map.pathColor, 0.3);
-    graphics.beginPath();
-    graphics.moveTo(wp[0].x, wp[0].y);
-    for (let i = 1; i < wp.length; i++) {
-      graphics.lineTo(wp[i].x, wp[i].y);
+    // Layer 4: Dashed center line
+    for (let i = 0; i < wp.length - 1; i++) {
+      const dx = wp[i + 1].x - wp[i].x;
+      const dy = wp[i + 1].y - wp[i].y;
+      const segLen = Math.sqrt(dx * dx + dy * dy);
+      const dashLen = 10;
+      const gapLen = 8;
+      const nx = dx / segLen;
+      const ny = dy / segLen;
+      let d = 0;
+      let drawing = true;
+      while (d < segLen) {
+        const step = drawing ? dashLen : gapLen;
+        const end = Math.min(d + step, segLen);
+        if (drawing) {
+          graphics.lineStyle(2, dashColor, 0.35);
+          graphics.beginPath();
+          graphics.moveTo(wp[i].x + nx * d, wp[i].y + ny * d);
+          graphics.lineTo(wp[i].x + nx * end, wp[i].y + ny * end);
+          graphics.strokePath();
+        }
+        d = end;
+        drawing = !drawing;
+      }
     }
-    graphics.strokePath();
+
+    // Waypoint markers at corners
+    for (let i = 1; i < wp.length - 1; i++) {
+      graphics.fillStyle(dashColor, 0.3);
+      graphics.fillCircle(wp[i].x, wp[i].y, 3);
+    }
   }
 
   // Given a progress value (0 to 1), return {x, y} position on the path
